@@ -1,0 +1,89 @@
+body{
+	background-color: #111;
+	font-family: Helvetica;
+	user-select: none;
+}
+#title{
+	color: gold;
+	font-weight: 700;
+	font-size: 10vh;
+	height: 15vh;
+	line-height: 15vh;
+	margin-top: 5vh;
+	display: inline-block;
+}
+#title:hover{
+	  font-size: 11vh;
+}
+
+#choices_holder{
+	margin-top: 5vh;
+}
+.choice{
+	height: 50vh;
+	width: 20vw;
+	background-color: white;
+	display: inline-block;
+	border-radius: 10%;
+	border: 10px solid #111;
+	margin: auto 1vw;
+	cursor: pointer;
+	box-sizing: border-box;
+}
+.choice:hover{
+	border-color: gold;
+}
+.choice_caption{
+	display: inline-block;
+	color: #111;
+	font-weight: 700;
+	font-size: 2vw;
+	margin-top: 10%;
+}
+.choice_img{
+	width: 80%;
+	margin-top: 20%;
+	background: #111;
+}
+
+.inactive{
+	display: none;
+}
+#choices_1 > .choice > .choice_img{
+	margin-top: 10%;
+}
+.name_input{
+	font-size: 3vw;
+	text-align: center;
+	background: #111;
+	width: 20vw;
+	height: 15vh;
+}
+#name_0:hover{
+	color: white;
+}
+#name_1:hover{
+	color: white;
+}
+#name_0{
+	color: red;
+	border: 5px solid red;
+}
+#name_1{
+	margin: 2.5vh 0;
+	color: blue;
+	border: 5px solid blue;
+}
+#names_button{
+	box-sizing: border-box;
+	cursor: pointer;
+	color: gold;
+	font-size: 3vw;
+	border: 5px solid white;
+	width: 20vw;
+	height: 15vh;
+	line-height: 15vh;
+}
+#names_button:hover{
+	border-color: gold;
+}

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en, cz, pl">
+
+<head>
+ <meta charset="utf-8"/>
+ <meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1, firefox = 1" />
+	
+	<title>Path finding</title>
+	
+	<meta name="Description" content="pathfinding visualization" />
+	<meta name="Keywords" content="path, pathfinding, visualization, A*, Dijkstra" />
+
+	<script src="script.js"></script>
+	<link rel="stylesheet" type="text/css" href="theme.css">
+</head>
+
+<body onload="main()" oncontextmenu="return false">
+
+
+<div id = "headbar_div" align="center">
+	<select autocomplete="off" onchange="set_dimensions(this.value);reset_grid();draw_grid();">
+		<option value="0">SMALL</option>
+		<option value="1" selected>MEDIUM</option>
+		<option value="2">LARGE</option>
+	</select>
+	<button onclick="reset_grid();random_grid(25);draw_grid()">Random</button>
+	<button onclick="reset_grid();draw_grid()">Reset</button>
+	<button onclick="dijkstra()">START</button>
+	<select autocomplete="off" onchange="change_solving_method(this.value)">
+		<option value="0">DJIKSTRA</option>
+		<option value="1">A*</option>
+	</select>
+	<label class="checkbox" onmousedown='return false;'>
+		<input type="checkbox" autocomplete="off" onchange="change_canDiagonal()"/>
+		<span>DIAGONAL</span>
+	</label>
+	<label class="checkbox" onmousedown='return false;'>
+		<input type="checkbox" autocomplete="off" checked onchange="change_showAnimation()"/>
+		<span>ANIMATION</span>
+	</label>
+	<label class="checkbox" onmousedown='return false;'>
+		<input type="checkbox" autocomplete="off" onchange="change_loop()"/>
+		<span>LOOP</span>
+	</label>
+	<div class ="checkbox_div" id = "length_text">path length: XX</div>
+</div>
+
+
+<div id = "canvas_div">
+<canvas id = "myCanvas"></canvas>
+</div>
+
+</body>
+
+</html>

@@ -1,0 +1,75 @@
+canvas{
+	border: 1px solid black;
+}
+body{
+	font-family: Consolas;
+}
+button{
+	width: 8.5%;
+	height: 50px;
+	font-size: 1vw;
+	text-transform: uppercase;
+}
+#headbar_div{
+	width: 100%;
+	margin-bottom: 1%;
+}
+#canvas_div{
+	width:90%;
+    margin-left: 5%;
+}
+select{
+	width: 8.5%;
+	height: 50px;
+	font-size: 1vw;
+	text-align: center;
+}
+#play_button{
+	width: 50px;
+	padding: 0;
+}
+.checkbox_div{
+	display: inline-flex;
+	font-size: 1vw;
+	width: 8.5%;
+	height: 50px;
+	border: 1px solid black;
+	align-items: center;
+	padding-left: 10px;
+}
+.checkbox {
+    display: inline-flex;
+    cursor: pointer;
+	position: relative;
+	width: 168px;
+	align-items: center;
+}
+
+.checkbox > span {
+	padding: 0.5rem 0.25rem;
+	font-size: 1vw;
+}
+
+.checkbox > input {
+    height: 50px;
+    width: 50px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    -o-appearance: none;
+    appearance: none;
+    border: 1px solid black;
+    outline: none;
+    cursor: pointer;
+  }
+
+
+.checkbox > input:checked + span::before {
+    content: '\2714';
+    display: block;
+    text-align: center;
+    position: absolute;
+    left: 0.8rem;
+	top: 0;
+	font-size: 35px;
+}
+

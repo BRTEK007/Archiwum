@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en, cz, pl">
+
+<head>
+	<meta charset="utf-8" />
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1, firefox = 1" />
+	<script src="script.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="theme.css">
+	<script>
+		if (document.images) {
+		  img1 = new Image();
+		  img1.src = "img/time.gif";
+
+		  img2 = new Image();
+		  img2.src = "img/nodes.gif";
+
+		  img3 = new Image();
+		  img3.src = "img/smiles.gif";
+		}
+	  </script>
+</head>
+
+<body onload="main()" onmouseup="mouseUp()" onmousedown="return false" oncontextmenu="return false">
+
+	<div id = "preload"></div>
+
+	<div >
+		<input type="radio" id="huey" name="drone" oninput="change_settings(0)">
+		<label for="huey">Beginner</label>
+	</div>
+
+	<div>
+		<input type="radio" id="dewey" name="drone" checked oninput="change_settings(1)">
+		<label for="dewey">Intermediate</label>
+	</div>
+
+	<div>
+		<input type="radio" id="louie" name="drone" oninput="change_settings(2)">
+		<label for="louie">Expert</label>
+	</div>
+	<div>
+		<button onclick = "main()">reload</button>
+	</div>
+
+	<table>
+		<tr>
+			<td>
+				<div class="corner" id="corner_t_l"></div>
+				<div class="border_vertical_small"></div>
+				<div class="corner" id="corner_m_l"></div>
+				<div class="border_vertical"></div>
+				<div class="corner" id="corner_b_l"></div>
+			</td>
+
+			<td>
+				<div class="border_horizontal"></div>
+				<table width="100%">
+					<tr>
+						<td width="33%" align="left">
+							<div class="digit" id="digit_0"></div>
+							<div class="digit" id="digit_1"></div>
+							<div class="digit" id="digit_2"></div>
+						</td>
+						<td width="33%" align="center"> <button id="smile" onclick="new_game()" state = ""></button> </td>
+						<td width="33%" align="right">
+							<div class="digit" number="0" id="digit_3"></div>
+							<div class="digit" number="0" id="digit_4"></div>
+							<div class="digit" number="0" id="digit_5"></div>
+						</td>
+					</tr>
+				</table>
+				<div class="border_horizontal"></div>
+				<div id="holder" onmousedown="mouseDown()" ></div>
+				<div class="border_horizontal"></div>
+			</td>
+
+			<td>
+				<div class="corner" id="corner_t_r"></div>
+				<div class="border_vertical_small"></div>
+				<div class="corner" id="corner_m_r"></div>
+				<div class="border_vertical"></div>
+				<div class="corner" id="corner_b_r"></div>
+			</td>
+	</table>
+	</tr>
+
+</body>
+
+</html>
