@@ -1,0 +1,8 @@
+body{
+    background-color: rgb(30, 30, 30);
+}
+
+canvas{
+    height: 95vh;
+    width: 95vh;
+}
