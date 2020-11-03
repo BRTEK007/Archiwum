@@ -75,7 +75,7 @@ function playerWon(player) {
 }
 
 function update() {
-  context.fillStyle = "#1e1e1e";
+  context.fillStyle = "#111";
   context.fillRect(0, 0, 1600, 800);
 
   context.fillStyle = "black";
