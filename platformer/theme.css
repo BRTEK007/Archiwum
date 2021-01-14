@@ -27,10 +27,16 @@ body{
 	padding-top: 25px;
 }
 
-#buttonHolderDiv{
-	margin-top: 200px;
-	height: 30vh;
+#menusHolderDiv{
+	height: 70vh;
+}
+
+#menu0{
 	margin-top: 40vh;
+}
+
+#menu1{
+	margin-top: 10vh;
 }
 
 #centerDiv{
@@ -56,4 +62,13 @@ body{
 
 .buttonDiv[selected = "true"]{
 	font-size: 30px;
+	color: yellow;
+}
+
+.menu[active = "true"]{
+	display: inline-block;
+}
+
+.menu[active = "false"]{
+	display: none;
 }

@@ -179,11 +179,15 @@ function windowLoaded() {
 
   frameWindow = document.getElementById('frameCounterDiv');
 
+
   if (level) {
     loadHtmlLevel();
   }
-  else
+  else{
+    let url = new URL(window.location.href);
+    levelNumber = url.searchParams.get("x");
     loadLevelFromFile(levelNumber);
+  }
 
 
   requestAnimationFrame(frame);

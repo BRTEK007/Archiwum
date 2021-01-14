@@ -1,4 +1,6 @@
 var selected = 0;
+var menuLayer = 0;
+const BUTTON_COUNT = [3, 8]
 
 document.addEventListener('keydown', (e) => {
     switch(e.key){
@@ -9,26 +11,51 @@ document.addEventListener('keydown', (e) => {
 });
 
 function switchButton(n){
-    if(selected + n > 2 || selected + n < 0) return;
+    if(selected + n > BUTTON_COUNT[menuLayer]-1 || selected + n < 0) return;
 
-    let previous = document.getElementById('button' + selected);
+    let previous = document.getElementById('menu' + menuLayer).children[selected];
     previous.setAttribute("selected", false);
-    previous.innerHTML = previous.innerHTML.substring(1, previous.innerHTML.length -1);
+    //previous.innerHTML = previous.innerHTML.substring(1, previous.innerHTML.length -1);
 
     selected += n;
 
-    let current = document.getElementById('button' + selected);
+    let current = document.getElementById('menu' + menuLayer).children[selected];
     current.setAttribute("selected", true);
-    current.innerHTML = '-' + current.innerHTML + '-';
+    //current.innerHTML = '-' + current.innerHTML + '-';
 }
 
 function buttonsSelected(){
-    switch(selected){
-        case 0: window.open('game/index.html'); break;
-        case 1: window.open('editor/index.html'); break;
-        case 2: alert("arrows to move, R to restart"); break;
+    if(menuLayer == 0){
+        switch(selected){
+           case 0: changeMenuLayer(1); break;
+           case 1: window.open('editor/index.html'); break;
+           case 2: alert("arrows to move, R to restart"); break;
+        }
+    }else if(menuLayer == 1){
+        if(selected == BUTTON_COUNT[1]-1){
+            changeMenuLayer(0);
+        }
+        else{
+            var url = 'game/index.html?x=' + (selected+1);
+            window.open(url);
+        }
     }
 }
+
+function changeMenuLayer(layer){
+    let oldLayer = document.getElementById('menu' + menuLayer);
+    oldLayer.setAttribute("active", false);
+    oldLayer.children[selected].setAttribute("selected", false);
+
+    let newLayer = document.getElementById('menu' + layer);
+    newLayer.setAttribute("active", true);
+    newLayer.children[0].setAttribute("selected", true);
+    selected = 0;
+
+    menuLayer = layer;
+}
+
+//animation
 
 var canvas;
 var ctx;

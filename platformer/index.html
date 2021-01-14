@@ -20,11 +20,28 @@
 	<canvas id = "myCanvas"></canvas>
 	<div id = "centerDiv" align = "center">
 		<div id = "titleDiv">3-bit platformer</div>
-		<div id = "buttonHolderDiv">
-			<div class = "buttonDiv" selected = "true" id = "button0">-playthrough-</div>
-			<div class = "buttonDiv" selected = "false" id = "button1">level editor</div>
-			<div class = "buttonDiv" selected = "false" id = "button2">controls</div>
+		
+		<div id = "menusHolderDiv">
+			<div class = "menu" id = menu0 active = "true">
+				<div class = "buttonDiv" selected = "true">play</div>
+				<div class = "buttonDiv" selected = "false">level editor</div>
+				<div class = "buttonDiv" selected = "false">controls</div>
+			</div>
+
+			<div class = "menu" id = menu1 active = "false">
+				<div class = "buttonDiv" selected = "false">1</div>
+				<div class = "buttonDiv" selected = "false">2</div>
+				<div class = "buttonDiv" selected = "false">3</div>
+				<div class = "buttonDiv" selected = "false">4</div>
+				<div class = "buttonDiv" selected = "false">5</div>
+				<div class = "buttonDiv" selected = "false">6</div>
+				<div class = "buttonDiv" selected = "false">7</div>
+				<div class = "buttonDiv" selected = "false">back</div>
+			</div>
+
 		</div>
+
+
 		<div id = "footerDiv">Use arrows and Enter to navigate</div>
 	</div>
 </body>
