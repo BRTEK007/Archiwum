@@ -1,12 +1,13 @@
 var selected = 0;
 var menuLayer = 0;
-const BUTTON_COUNT = [3, 8]
+const BUTTON_COUNT = [3, 10]
 
 document.addEventListener('keydown', (e) => {
     switch(e.key){
         case "ArrowDown": switchButton(1); break;
         case "ArrowUp": switchButton(-1); break;
         case "Enter": buttonsSelected(); break;
+        case "F11": console.log("open fullscreen"); break;
     }
 });
 
