@@ -96,7 +96,7 @@ function confirmLevelStats(replay){
 
   if(!replay) levelNumber++;
 
-  if(levelNumber < 7){
+  if(levelNumber < 10){
     document.getElementById("finishedMenu").style.display = "none";
     canvas.style.display = "inline-block";
     loadLevelFromFile(levelNumber);
