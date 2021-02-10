@@ -58,6 +58,7 @@
 body{
 	margin: 0;
 	background-image: url('background.jpg');
+	background-size: cover;
 }
 #smile{
 	height: 52px;
@@ -180,4 +181,8 @@ table{
 }
 td{
 	padding: 0;
+}
+
+#settingsDiv{
+	display: inline-block;
 }

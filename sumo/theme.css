@@ -1,8 +1,48 @@
 body{
     background-color: #111;
+    font-family: Consolas;
+}
+
+html, body{
+	margin: 0; 
+	height: 100%;
+	overflow: hidden;
 }
 
 canvas{
-    height: 95vh;
-    width: 95vh;
+    height: 800px;
+    width: 800px;
+}
+
+.helpDiv{
+    height: 95%;
+    width: 320px;
+    font-weight: bolder;
+    font-size: 18px;
+}
+
+.helpDiv[player = "red"]{
+    color: red;
+}
+
+.helpDiv[player = "blue"]{
+    color: blue;
+}
+
+table{
+    width: 100%;
+    height: 100%;
+    height: 100%;
+}
+
+#StartDiv{
+    position: relative;
+    bottom: 400px;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0% {color: white;}
+    50% {color: rgb(150, 150, 150);}
+    100% {color: white;}
 }

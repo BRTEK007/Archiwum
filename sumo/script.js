@@ -42,7 +42,7 @@ var bullets;
 
 var roundManager;
 
-var playing = true;
+var playing = false, updatingUI = false;
 
 function windowLoaded() {
   let canvas = document.getElementById('myCanvas');
@@ -54,9 +54,11 @@ function windowLoaded() {
 
   player1 = new Player(100, 400, "red");
   player1.setKeys("ArrowLeft", "ArrowUp", "ArrowRight");
+  keyMap.set("ArrowUp", false);
 
   player2 = new Player(700, 400, "blue");
   player2.setKeys("a", "w", "d");
+  keyMap.set("w", false);
   //player2.angle = Math.PI;
 
   bullets = Array();
@@ -68,6 +70,7 @@ function windowLoaded() {
 
 function playerWon(player) {
   playing = false;
+  updatingUI = true;
   bullets = [];
   player1.resetPos();
   player2.resetPos();
@@ -76,7 +79,7 @@ function playerWon(player) {
 
 function update() {
   context.fillStyle = "#111";
-  context.fillRect(0, 0, 1600, 800);
+  context.fillRect(0, 0, 800, 800);
 
   context.fillStyle = "black";
   context.beginPath();
@@ -100,12 +103,20 @@ function update() {
   player1.draw();
   player2.draw();
 
-  if(!playing){
+  if(updatingUI){
     roundManager.update();
     roundManager.draw();
+    return;
   }
 
-  if (playing) {
+  if(!playing){
+    if(keyMap.get(player1.keys.shoot) && keyMap.get(player2.keys.shoot)){
+      this.playing = true;
+      ShowStartMessage(false);
+    }
+  }
+
+  else{
     player1.update();
     if (IsCircleOutOfMap(player1.pos.x, player1.pos.y, player1.radius)){
       playerWon(player2);
@@ -201,8 +212,10 @@ class RoundManager{
 
   update(){
     this.timeCounter += deltaTime;
-    if(this.timeCounter >= this.timeFill + this.timeUnfill + this.timeDelay)
-      playing = true;
+    if(this.timeCounter >= this.timeFill + this.timeUnfill + this.timeDelay){
+      updatingUI = false;
+      ShowStartMessage(true);
+    }
   }
 
   draw(){
@@ -238,7 +251,7 @@ class Player {
     this.innerAngle = 30 * Math.PI / 180;
     this.radius = 18;
     this.color = color;
-    this.bulletDelayCounter = 0;
+    this.bulletDelayCounter = -0.1;
     this.keys = { right: "ArrowRight", left: "ArrowLeft", shoot: "ArrowUp" };
   }
 
@@ -309,6 +322,7 @@ class Player {
     this.pos = { x: this.spawn.x, y: this.spawn.y };
     this.vel = { x: 0, y: 0 };
     this.angle = Math.atan2(400 - this.pos.y, 400 - this.pos.x);
+    this.bulletDelayCounter = -0.1;
   }
 
 }
@@ -367,102 +381,17 @@ class Wall {
   }
 }
 
-function segmentsIntersection(segA, segB) {
-  var a = (segA.y1 - segA.y2) / (segA.x1 - segA.x2);
-  var b = segA.y1 - segA.x1 * a;
-  var c = (segB.y1 - segB.y2) / (segB.x1 - segB.x2);
-  var d = segB.y1 - segB.x1 * c;
-  var x = (b - d) / (c - a);
-  var y = a * x + b;
-  if ((segA.x1 - segA.x2) == 0) {
-    x = segA.x1;
-    y = c * x + d;
-  }
-  else if ((segB.x1 - segB.x2) == 0) {
-    x = segB.x1;
-    y = a * x + b;
-  }
-
-  if (x < Math.min(segA.x1, segA.x2)) return null;//left
-  if (x > Math.max(segA.x1, segA.x2)) return null;//right
-  if (y < Math.min(segA.y1, segA.y2)) return null;//top
-  if (y > Math.max(segA.y1, segA.y2)) return null;//bottom
-  //segment B
-  if (x < Math.min(segB.x1, segB.x2)) return null;//left
-  if (x > Math.max(segB.x1, segB.x2)) return null;//right
-  if (y < Math.min(segB.y1, segB.y2)) return null;//top
-  if (y > Math.max(segB.y1, segB.y2)) return null;//bottom
-
-  return { x: x, y: y };
-}
-
-function overlapSAT(poly1, poly2) {
-  for (var shape = 0; shape < 2; shape++) {
-    if (shape == 1) {
-      let t = poly1;
-      poly1 = poly2;
-      poly2 = t;
-    }
-
-    for (var a = 0; a < poly1.length; a++) {
-      var b = (a + 1) % poly1.length;
-      var axisProj = { x: -(poly1[b].y - poly1[a].y), y: poly1[b].x - poly1[a].x };
-      var d = Math.sqrt(axisProj.x * axisProj.x + axisProj.y * axisProj.y);
-      axisProj = { x: axisProj.x / d, y: axisProj.y / d };
-
-      // Work out min and max 1D points for r1
-      var min_r1 = Infinity, max_r1 = -Infinity;
-      for (var p = 0; p < poly1.length; p++) {
-        let q = (poly1[p].x * axisProj.x + poly1[p].y * axisProj.y);
-        min_r1 = Math.min(min_r1, q);
-        max_r1 = Math.max(max_r1, q);
-      }
-
-      // Work out min and max 1D points for r2
-      var min_r2 = Infinity, max_r2 = -Infinity;
-      for (var p = 0; p < poly2.length; p++) {
-        let q = (poly2[p].x * axisProj.x + poly2[p].y * axisProj.y);
-        min_r2 = Math.min(min_r2, q);
-        max_r2 = Math.max(max_r2, q);
-      }
-
-      if (!(max_r2 >= min_r1 && max_r1 >= min_r2))
-        return false;
-    }
-  }
-
-  return true;
-}
-
-function polygonOutOfMap(poly, minX, maxX, minY, maxY) {
-  for (var i = 0; i < poly.length; i++) {
-    if (poly[i].x <= minX)
-      return true;
-    if (poly[i].x >= maxX)
-      return true;
-    if (poly[i].y <= minY)
-      return true;
-    if (poly[i].y >= maxY)
-      return true;
-  }
-  return false;
-}
-
-function drawPolygon(points, color = "white") {
-  context.fillStyle = color;
-  context.beginPath();
-  context.moveTo(points[0].x, points[0].y);//TL
-  for (var i = 1; i < points.length; i++) {
-    context.lineTo(points[i].x, points[i].y);//TL
-  }
-  context.closePath();
-  context.fill();
-}
-
 function IsCircleOutOfMap(x, y, radius) {
   return Math.pow(400 - x, 2) + Math.pow(400 - y, 2) >= Math.pow(400 - radius, 2);
 }
 
 function DoCirclesOverlap(x1, y1, r1, x2, y2, r2) {
   return Math.abs((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)) <= (r1 + r2) * (r1 + r2);
+}
+
+function ShowStartMessage(a){
+  if(a == false)
+    document.getElementById("StartDiv").style.display = "none";
+  else if(a == true)
+    document.getElementById("StartDiv").style.display = "block";
 }
