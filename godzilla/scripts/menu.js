@@ -3,24 +3,27 @@ var captions = [];
 var strings = [];
 var img;
 var frame;
+const HELP_MSG = 
+"Controll godzilla with arrows\n" +
+"Pick up fallen bricks to inventory(left bottom corner)\n"+
+"Repair broken buildings using those bricks by walking by them\n"+
+"smash bomb placing humans\n" +
+"when destruction bar is filled up(right bottom corner) you loose";
 
 function main(){
-    alert("Use arrows and Enter to navigate");
     img = document.getElementById('icon_img');
     captions[0] = document.getElementById('caption0');
     captions[1] = document.getElementById('caption1');
-    captions[2] = document.getElementById('caption2');
 
     strings[0] = captions[0].innerHTML;
     strings[1] = captions[1].innerHTML;
-    strings[2] = captions[2].innerHTML;
 
     change_caption();
     setInterval(animation, 500);
 }
 
 function change_caption(){
-   for(let i = 0; i < 3; i++){
+   for(let i = 0; i < 2; i++){
        if(i == pos){
         captions[i].innerHTML = ">" + strings[i] + "<";
        }else{
@@ -36,10 +39,8 @@ function confirm(){
             window.open("game.html");
         break;
         case 1:
-            alert("nima");
-        break;
-        case 2:
-            alert("Steruj godzillą za pomocą strzałek.\nOdbuduj zniszczone budynki zebranymi cegłami.\nSMASH HUMANS!");
+            s = ""
+            alert(HELP_MSG);
         break;
     }
 }
@@ -50,11 +51,11 @@ window.addEventListener("keydown", function (event) {
     }
     switch (event.key) {
       case "ArrowDown":
-        if(pos < 2)
+        if(pos == 0)
             pos++;
         break;
       case "ArrowUp":
-        if(pos > 0)
+        if(pos == 1)
             pos--;
         break;
       case "Enter":

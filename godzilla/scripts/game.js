@@ -269,8 +269,11 @@ update(){
     for(let i = 0; i < this.toDrawTemp.length; i++){
       this.toDrawTemp[i].update();
     }
-    this.destruction_level = Math.round((this.broken_buildings / this.buildings_ids.length)*400);
+    this.destruction_level = Math.round((this.broken_buildings / this.buildings_ids.length)*450);
     this.draw();
+
+    if(this.destruction_level >= 100)
+      this.lost();
 }
 repair(){
   clearInterval(game.time_counter);
@@ -296,6 +299,11 @@ hide_anim(id){
   //ctx.clearRect(0, id*16, canvas.width, 16);
   ctx.clearRect(0, (game.map_size-id)*16 + 16, canvas.width, 16);
   setTimeout(game.hide_anim, 100, id+1);
+}
+
+lost(){
+  alert("you lost!");
+  window.close();
 }
 
 }
