@@ -135,7 +135,8 @@ function next_level(){
     game.level =  level +1;
     game.init();
   }else{
-    game = null;
+    alert("You won!");
+    window.close();
   }
 
  }

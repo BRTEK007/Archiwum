@@ -269,7 +269,7 @@ update(){
     for(let i = 0; i < this.toDrawTemp.length; i++){
       this.toDrawTemp[i].update();
     }
-    this.destruction_level = Math.round((this.broken_buildings / this.buildings_ids.length)*450);
+    this.destruction_level = Math.round((this.broken_buildings / this.buildings_ids.length)*420);
     this.draw();
 
     if(this.destruction_level >= 100)
@@ -302,7 +302,7 @@ hide_anim(id){
 }
 
 lost(){
-  alert("you lost!");
+  alert("You lost!");
   window.close();
 }
 
