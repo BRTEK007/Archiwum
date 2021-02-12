@@ -3,4 +3,11 @@ body{
 }
 canvas{
 	border: 1px solid white;
+	width: 1563px;
+	height: 768px;
+}
+
+body,html{
+	overflow: hidden;
+	margin: 0;
 }

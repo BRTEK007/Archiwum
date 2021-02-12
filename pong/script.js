@@ -28,6 +28,8 @@ const GAME_WIDTH = 1563;//1563
 
 function setup(){
 	canvas = document.getElementById('myCanvas');
+	canvas.width = GAME_WIDTH;
+	canvas.height = GAME_HEIGHT;
 	ctx = canvas.getContext("2d");
 	ball = new Ball();
 	rightBot = new Bot(1503);
