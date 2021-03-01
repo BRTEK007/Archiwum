@@ -5,7 +5,7 @@ var lastC = 0;
 var settings = {
     size: 10,
     spacing: 1,
-    algorythm: 'RDFS',
+    algorythm: 'ELLER',
     speed: 51,
 }
 
@@ -61,6 +61,9 @@ function startGeneration() {
         case 'PRIM':
             solver = new Prim_solver();
             break;
+        case 'ELLER':
+                solver = new Eller_solver();
+                break;
     }
     if (solver != null) solver.init();
 }
@@ -341,6 +344,88 @@ const Prim_solver = function () {
 
         }
 
+
+    }
+
+}
+
+
+const Eller_solver = function () {
+    this.sets;
+    this.walls;
+    this.finished;
+    this.pos;
+
+
+    this.init = function () {
+        this.finished = true;
+
+        this.sets = new Array(maze.grid_height * maze.grid_width);
+        for (let i = 0; i < this.sets.length; i++) this.sets[i] = i;
+        this.free_set_number = this.sets.length;
+
+        this.pos = {x : 0, y : 0};
+
+        for(var y = 0; y < maze.grid_height-1; y++){
+
+        var last_set = 0;
+        for(var x = 0; x < maze.grid_width; x++){
+            if(x == maze.grid_width-1 && y < maze.grid_height-1){
+                drawPassage(last_set + y * maze.grid_width, last_set + (y+1) * maze.grid_width);
+                this.joinSets(last_set + y * maze.grid_width, last_set + (y+1) * maze.grid_width);
+                last_set = x+1;
+                continue;
+            }
+            let r = Math.random();
+            if(r > 0.5){
+                this.joinSets(x + y * maze.grid_width, x + 1 + y * maze.grid_width);
+                drawPassage(x + y * maze.grid_width, x + 1 + y * maze.grid_width);
+            }else if(y < maze.grid_height-1){
+                drawPassage(last_set + y * maze.grid_width, last_set + (y+1) * maze.grid_width);
+                this.joinSets(last_set + y * maze.grid_width, last_set + (y+1) * maze.grid_width);
+                last_set = x+1;
+            }
+        }
+
+        }
+
+        for(var x = 0; x < maze.grid_width-1; x++){
+            if(this.sets[x + (maze.grid_height-1) * maze.grid_width] != this.sets[x + 1+ (maze.grid_height-1) * maze.grid_width]){
+                this.joinSets(x + (maze.grid_height-1) * maze.grid_width, x + 1 + (maze.grid_height-1) * maze.grid_width);
+                drawPassage(x + (maze.grid_height-1) * maze.grid_width, x + 1 + (maze.grid_height-1) * maze.grid_width);
+            }
+        }
+    }
+
+    this.update = function () {
+        this.framedSolve();
+    }
+
+    this.joinSets = function (s1, s2) {
+        for (var i = 0; i < this.sets.length; i++) {
+            if (this.sets[i] == s1) this.sets[i] = this.free_set_number;
+            else if (this.sets[i] == s2) this.sets[i] = this.free_set_number;
+        }
+        this.free_set_number++;
+    }
+
+    this.framedSolve = function () {
+
+        for (let i = 0; i < settings.speed; i++) {
+
+            if (this.pos.x == maze.grid_width -1) {
+                this.finished = true;
+                return;
+            }
+
+            let r = Math.random();
+            if(r > 0.5){
+                this.joinSets(this.pos.x + this.pos.y * maze.grid_width, this.pos.x + 1 + this.pos.y * maze.grid_width);
+                drawPassage(this.pos.x + this.pos.y * maze.grid_width, this.pos.x + 1 + this.pos.y * maze.grid_width);
+            }
+
+            this.pos.x++;
+        }
 
     }
 
