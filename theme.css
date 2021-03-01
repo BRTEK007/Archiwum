@@ -2,12 +2,13 @@ body{
 	background-color: #111;
 	font-family: Helvetica;
 	user-select: none;
+	overflow-x: hidden;
 }
 .entry{
 	background-color: #222;
 	display: inline-block;
-	box-sizing: border-box;
-	width: 500px;
+	/*box-sizing: border-box;*/
+	width: 400px;
 	height: 500px;
 	margin: 25px;
 	border-radius: 5% 5% 0 0;
@@ -15,15 +16,16 @@ body{
 	border-top: 2px solid;
 	border-right: 2px solid;
 	border-color: #222;
-}
-.js_app{
-	border-color: rgb(251, 255, 0);
+	z-index: 1;
 }
 
 .entry_img{
+	border-radius: 5% 5% 0 0;
 	height: 300px;
 	width: 400px;
-	margin:  25px 50px;
+	margin-top:  1px;
+	z-index: 0;
+	border: 2px solid yellow;
 }
 .entry_title{
 	color: #eee;
@@ -45,7 +47,7 @@ body{
 .entry_button{
 	box-sizing: border-box;
 	cursor: pointer;
-	width: 500px;
+	width: 100%;
 	margin-left: -2px;
 	height: 30px;
 	border: none;
