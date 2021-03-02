@@ -381,8 +381,9 @@ const Eller_solver = function () {
                 this.joinSets(x + y * maze.grid_width, x + 1 + y * maze.grid_width);
                 drawPassage(x + y * maze.grid_width, x + 1 + y * maze.grid_width);
             }else if(y < maze.grid_height-1){
-                drawPassage(last_set + y * maze.grid_width, last_set + (y+1) * maze.grid_width);
-                this.joinSets(last_set + y * maze.grid_width, last_set + (y+1) * maze.grid_width);
+                r = Math.floor(Math.random() * (y-last_set));
+                drawPassage(last_set+r + y  * maze.grid_width, last_set+r + (y+1) * maze.grid_width);
+                this.joinSets(last_set+r + y * maze.grid_width, last_set+r + (y+1) * maze.grid_width);
                 last_set = x+1;
             }
         }
