@@ -1,11 +1,10 @@
-var c1, ctx1;
+var canvas, ctx;
 var solver;
-var lastC = 0;
 
 var settings = {
     size: 10,
     spacing: 1,
-    algorythm: 'ELLER',
+    algorythm: 'RDFS',
     speed: 51,
 }
 
@@ -43,14 +42,14 @@ function changeSettings(param, val) {
 function updateMazeDimensions() {
     maze.cell_size = settings.size;
     maze.wall_size = settings.spacing;
-    maze.grid_width = Math.floor((c1.width - maze.wall_size) / (maze.cell_size + maze.wall_size));
-    maze.grid_height = Math.floor((c1.height - maze.wall_size) / (maze.cell_size + maze.wall_size));
-    maze.offset_x = Math.floor((c1.width - (maze.cell_size + maze.wall_size) * maze.grid_width) / 2);
-    maze.offset_y = Math.floor((c1.height - (maze.cell_size + maze.wall_size) * maze.grid_height) / 2);
+    maze.grid_width = Math.floor((canvas.width - maze.wall_size) / (maze.cell_size + maze.wall_size));
+    maze.grid_height = Math.floor((canvas.height - maze.wall_size) / (maze.cell_size + maze.wall_size));
+    maze.offset_x = Math.floor((canvas.width - (maze.cell_size + maze.wall_size) * maze.grid_width) / 2);
+    maze.offset_y = Math.floor((canvas.height - (maze.cell_size + maze.wall_size) * maze.grid_height) / 2);
 }
 
 function startGeneration() {
-    ctx1.clearRect(0, 0, c1.width, c1.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     switch (settings.algorythm) {
         case 'RDFS':
             solver = new RDFS_solver();
@@ -70,25 +69,23 @@ function startGeneration() {
 
 function clearGeneration() {
     solver = null;
-    ctx1.clearRect(0, 0, c1.width, c1.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 function cellColor(x, y) {
     let r = Math.round(127 + 128 * x / maze.grid_width).toString(16);
     let g = Math.round(127 + 128 * y / maze.grid_height).toString(16);
     let color = '#' + '7f' + r + g;
-    lastC++;
-    if (lastC == 255) lastC = 0;
     return color;
 }
 
-function drawPassage(c1, c2) {
-    let x1 = c1 % maze.grid_width;
-    let y1 = (c1 - x1) / maze.grid_width;
+function drawPassage(canvas, c2) {
+    let x1 = canvas % maze.grid_width;
+    let y1 = (canvas - x1) / maze.grid_width;
     let x2 = c2 % maze.grid_width;
     let y2 = (c2 - x2) / maze.grid_width;
 
-    ctx1.fillStyle = cellColor((x1 + x2) / 2, (y1 + y2) / 2);
+    ctx.fillStyle = cellColor((x1 + x2) / 2, (y1 + y2) / 2);
     let x, y, w, h;
 
     if (y2 > y1) {
@@ -112,14 +109,14 @@ function drawPassage(c1, c2) {
         h = maze.cell_size;
         w = maze.cell_size * 2 + maze.wall_size;
     }
-    ctx1.fillRect(x, y, w, h);
+    ctx.fillRect(x, y, w, h);
 }
 
 function pageLoaded() {
-    c1 = document.getElementById('canvas1');
-    c1.height = c1.getBoundingClientRect().height;
-    c1.width = c1.getBoundingClientRect().width;
-    ctx1 = c1.getContext('2d');
+    canvas = document.getElementById('canvas1');
+    canvas.height = canvas.getBoundingClientRect().height;
+    canvas.width = canvas.getBoundingClientRect().width;
+    ctx = canvas.getContext('2d');
 
     updateMazeDimensions();
 
@@ -233,8 +230,8 @@ const Kruskal_solver = function () {
 
         this.free_set_number = this.sets.length;
 
-        ctx1.lineWidth = 4;
-        ctx1.strokeStyle = "#00A6FF";
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = "#00A6FF";
     }
 
     this.update = function () {

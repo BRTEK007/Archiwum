@@ -5,6 +5,8 @@ canvas{
 	border: 1px solid white;
 	width: 1563px;
 	height: 768px;
+	margin-top: calc((100vh - 768px)*0.5);
+	margin-left: calc((100vw - 1563px)*0.5);
 }
 
 body,html{

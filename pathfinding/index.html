@@ -1,48 +1,67 @@
-<!DOCTYPE html>
-<html lang="en, cz, pl">
+<html>
 
 <head>
- <meta charset="utf-8"/>
- <meta charset="utf-8" />
-	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1, firefox = 1" />
-	
-	<title>Path finding</title>
-	
-	<meta name="Description" content="pathfinding visualization" />
-	<meta name="Keywords" content="path, pathfinding, visualization, A*, Dijkstra" />
-
-	<script src="script.js"></script>
-	<link rel="stylesheet" type="text/css" href="theme.css">
+    <meta name="google" content="notranslate">
+    <title>Pathfinding!</title>
+    <link rel="stylesheet" href="theme.css">
+    <script src="script.js"></script>
 </head>
 
-<body onload="main()" oncontextmenu="return false">
+<body onload="pageLoaded()">
+    <div id="left">
+        <canvas id="canvas1"></canvas>
+    </div>
+
+    <div id="titleDiv" oncontextmenu="return false;">Pathfinding!</div>
+
+    <div id="right" oncontextmenu="return false;">
+
+        <div>
+            <label for="size">cell size:</label>
+            <input type="range" min="20" max="40" value="30" name="size" onchange="changeSettings('SIZE', this.value);">
+        </div>
+
+        <hr>
+
+        <div>
+            <label for="algorythm">algorythm:</label>
+            <select name="algorythm" onchange="changeSettings('ALGORYTHM', this.value);">
+                <option value="RDFS">A*</option>
+                <option value="KRUSKAL">DIJSKTRA</option>
+            </select>
+        </div>
+
+        <hr>
+
+        <div>
+            <label for="diagonal">diagonal: </label>
+            <input type="checkbox" name="diagonal">
+        </div>
+
+        <hr>
+
+        <div>
+            <label for="speed">speed:</label>
+            <input type="range" step="5" min="1" max="101" value="51" name="speed"
+                onchange="changeSettings('SPEED', this.value);">
+        </div>
 
 
-<div id = "headbar_div" align="center">
-	<select autocomplete="off" onchange="set_dimensions(this.value);reset_grid();draw_grid();">
-		<option value="0">SMALL</option>
-		<option value="1" selected>MEDIUM</option>
-		<option value="2">LARGE</option>
-	</select>
-	<button onclick="reset_grid();random_grid(25);draw_grid()">Random</button>
-	<button onclick="reset_grid();draw_grid()">Reset</button>
-	<button onclick="dijkstra()">START</button>
-	<select autocomplete="off" onchange="change_solving_method(this.value)">
-		<option value="0">DJIKSTRA</option>
-		<option value="1">A*</option>
-	</select>
-	<label class="checkbox" onmousedown='return false;'>
-		<input type="checkbox" autocomplete="off" onchange="change_canDiagonal()"/>
-		<span>DIAGONAL</span>
-	</label>
-	<div class ="checkbox_div" id = "length_text">path length: XX</div>
-</div>
+        <hr>
 
 
-<div id = "canvas_div">
-<canvas id = "myCanvas"></canvas>
-</div>
+        <div>
+            <button onclick="startGeneration();">START</button>
+        </div>
 
+        <hr>
+
+
+        <div>
+            <button onclick="clearGeneration();">CLEAR</button>
+        </div>
+
+    </div>
 </body>
 
 </html>
