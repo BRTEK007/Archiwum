@@ -34,9 +34,8 @@ function setup(){
 	ball = new Ball();
 	rightBot = new Bot(1503);
 	leftBot = new Bot(60);
+	requestAnimationFrame(frame);
 }
-
-requestAnimationFrame(frame);
 
 function update(){
 	ctx.clearRect(0,0,GAME_WIDTH,GAME_HEIGHT);
@@ -216,6 +215,7 @@ function degrees_to_radians(degrees)
   var pi = Math.PI;
   return degrees * (pi/180);
 }
+
 function radians_to_degrees(radians){
 	return 180*radians/Math.PI;
 }

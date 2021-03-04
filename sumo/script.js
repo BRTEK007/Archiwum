@@ -16,19 +16,11 @@ function frame() {
 }
 
 window.addEventListener("keydown", function (event) {
-  if (event.defaultPrevented) {
-    return;
-  }
   keyMap.set(event.key, true);
-  event.preventDefault();
 }, true);
 
 window.addEventListener("keyup", function (event) {
-  if (event.defaultPrevented) {
-    return;
-  }
   keyMap.set(event.key, false);
-  event.preventDefault();
 }, true);
 
 function clamp(a, b, c) { return Math.max(b, Math.min(c, a)) };

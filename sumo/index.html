@@ -1,37 +1,38 @@
 ﻿<!DOCTYPE HTML>
 <html lang="en">
+
 <head>
 	<meta charset="utf-8" />
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
 	<title>SUMO!</title>
-	
+
 	<meta name="description" content="Opis w Google" />
 	<meta name="keywords" content="słowa, kluczowe, wypisane, po, porzecinku" />
 	<script src="script.js"></script>
 	<link rel="stylesheet" type="text/css" href="theme.css">
 </head>
 
-<body align = "center" onload = "windowLoaded()">
-	<table><tr>
-	
-		<td align="center"><div class = "helpDiv" player = "red">
-	RED:<br><br>
-	ArrowLeft/ArrowRight to turn,<br>
-	ArrowUp to shoot
-	</div></td>
-	
-	<td>
-		<canvas id = 'myCanvas'></canvas>
-		<div id = "StartDiv">PRESS SHOOT KEY IF YOU ARE READY</div>
-	</td>
-	
-	<td align="center"><div class = "helpDiv" player = "blue">
+<body onload="windowLoaded()">
+
+	<canvas id='myCanvas'></canvas>
+
+	<div class="helpDiv" player="red">
+		RED:<br><br>
+		ArrowLeft/ArrowRight to turn,<br>
+		ArrowUp to shoot
+	</div>
+
+	<canvas id='myCanvas'></canvas>
+	<div id="StartDiv">PRESS SHOOT KEY IF YOU ARE READY</div>
+
+	<div class="helpDiv" player="blue">
 		BLUE:<br><br>
 		A/D to turn,<br>
 		W to shoot
-	
-	</div></td>
-	</tr></table>
+
+	</div>
+	</td>
+
 </body>
 
 </html>

@@ -10,7 +10,6 @@ body{
 	display: inline-block;
 	width: 400px;
 	height: 400px;
-	margin: 50px;
 	border: 1px solid white;
 	cursor: pointer;
 }
@@ -46,6 +45,10 @@ body{
 	margin-left: -8px;
 	display: none;
 }
-#entries_holder{
-	margin-top: 75px;
+
+a{
+	display: inline-block;
+	width: 400px;
+	height: 400px;
+	margin: 50px;
 }
