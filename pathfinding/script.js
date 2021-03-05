@@ -127,9 +127,9 @@ function pageLoaded() {
     let cords = mouseCordsToCellCords(e.offsetX, e.offsetY);
 
     if (cords.x == GRID.startNode.x && cords.y == GRID.startNode.y) {
-    brush = BRUSH.START;
+      brush = BRUSH.START;
     } else if (cords.x == GRID.endNode.x && cords.y == GRID.endNode.y) {
-     brush = BRUSH.END;
+      brush = BRUSH.END;
     } else {
       if (e.button == 0) {
         ctx.fillStyle = COLORS.WALL;
@@ -139,6 +139,8 @@ function pageLoaded() {
         ctx.fillStyle = COLORS.EMPTY;
         brush = BRUSH.EMPTY;
       }
+      let id = cords.x + cords.y * GRID.width;
+      GRID.cells[id] = brush == BRUSH.WALL ? WALL : EMPTY;
       drawCell(cords.x, cords.y);
     }
   });
@@ -147,17 +149,19 @@ function pageLoaded() {
     if (!painting) return;
     let cords = mouseCordsToCellCords(e.offsetX, e.offsetY);
 
-    if(brush == BRUSH.START){
+    if (brush == BRUSH.START) {
       if (cords.x == GRID.endNode.x && cords.y == GRID.endNode.y) return;
-      ctx.fillStyle = COLORS.EMPTY;//fill colors.wall if there was one
+      let oldId = GRID.startNode.x + GRID.startNode.y * GRID.width;
+      ctx.fillStyle = GRID.cells[oldId] == WALL ? COLORS.WALL : COLORS.EMPTY;
       drawCell(GRID.startNode.x, GRID.startNode.y);
       ctx.fillStyle = COLORS.START_NODE;
       drawCell(cords.x, cords.y);
       GRID.startNode.x = cords.x;
       GRID.startNode.y = cords.y;
-    }else if(brush == BRUSH.END){
+    } else if (brush == BRUSH.END) {
       if (cords.x == GRID.startNode.x && cords.y == GRID.startNode.y) return;
-      ctx.fillStyle = COLORS.EMPTY;//fill colors.wall if there was one
+      let oldId = GRID.endNode.x + GRID.endNode.y * GRID.width;
+      ctx.fillStyle = GRID.cells[oldId] == WALL ? COLORS.WALL : COLORS.EMPTY;
       drawCell(GRID.endNode.x, GRID.endNode.y);
       ctx.fillStyle = COLORS.END_NODE;
       drawCell(cords.x, cords.y);
@@ -167,6 +171,8 @@ function pageLoaded() {
 
     if (cords.x == GRID.startNode.x && cords.y == GRID.startNode.y) return;
     else if (cords.x == GRID.endNode.x && cords.y == GRID.endNode.y) return;
+    let id = cords.x + cords.y * GRID.width;
+    GRID.cells[id] = brush == BRUSH.WALL ? WALL : EMPTY;
     drawCell(cords.x, cords.y);
   });
 
