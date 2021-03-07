@@ -34,6 +34,25 @@
         <hr>
 
         <div>
+            <label for="heuristics">heuristics:</label>
+            <select name="heuristics" onchange="changeSettings('HEURISTICS', this.value);">
+                <option value="EUKLIDES">EUKLIDES</option>
+                <option value="MANHATTAN">MANHATTAN</option>
+                <option value="CHEBYSHEW">CHEBYSHEW</option>
+                <option value="OCTILE">OCTILE</option>
+            </select>
+        </div>
+
+        <hr>
+
+        <div>
+            <label for="bi-directional">bi-directional: </label>
+            <input type="checkbox" name="bi-directional">
+        </div>
+
+        <hr>
+
+        <div>
             <label for="diagonal">diagonal: </label>
             <input type="checkbox" name="diagonal">
         </div>
@@ -42,7 +61,7 @@
 
         <div>
             <label for="speed">speed:</label>
-            <input type="range" step="5" min="1" max="101" value="51" name="speed"
+            <input type="range" step="5" min="1" max="51" value="26" name="speed"
                 onchange="changeSettings('SPEED', this.value);">
         </div>
 
@@ -51,14 +70,14 @@
 
 
         <div>
-            <button onclick="startGeneration();">START</button>
+            <button onclick="runButton();">RUN</button>
         </div>
 
         <hr>
 
 
         <div>
-            <button onclick="clearGeneration();">CLEAR</button>
+            <button onclick="clearButton();">CLEAR</button>
         </div>
 
     </div>
