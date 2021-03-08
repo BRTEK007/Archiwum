@@ -225,16 +225,16 @@ const DijkstraSolver = function () {
   this.neighbours = function (c) {
     var arr = [];
 
-    if (c > GRID.width && !this.visitedArr[c - GRID.width] && GRID.cells[c - GRID.width] != WALL) {
+    if (c >= GRID.width && !this.visitedArr[c - GRID.width] && GRID.cells[c - GRID.width] != WALL) {
       arr.push(c - GRID.width);
     }
-    if (c < GRID.width * (GRID.width - 1) - 1 && !this.visitedArr[c + GRID.width] && GRID.cells[c - GRID.width] != WALL) {
+    if (c < GRID.width * (GRID.height - 1) && !this.visitedArr[c + GRID.width] && GRID.cells[c + GRID.width] != WALL) {
       arr.push(c + GRID.width);
     }
-    if (c % GRID.width < (GRID.width - 1) && !this.visitedArr[c + 1] && GRID.cells[c - GRID.width] != WALL) {
+    if (c % GRID.width != GRID.width - 1 && !this.visitedArr[c + 1] && GRID.cells[c +1] != WALL) {
       arr.push(c + 1);
     }
-    if (c % GRID.width > 0 && !this.visitedArr[c - 1] && GRID.cells[c - GRID.width] != WALL) {
+    if (c % GRID.width != 0 && !this.visitedArr[c - 1] && GRID.cells[c - 1] != WALL) {
       arr.push(c - 1);
     }
 
