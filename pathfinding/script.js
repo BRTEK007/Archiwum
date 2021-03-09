@@ -92,7 +92,7 @@ function changeSettings(param, val) {
     case 'SIZE':
       SETTINGS.size = parseInt(val);
       updateGridDimensions();
-      drawGrid();
+      resetButton();
       break;
     case 'ALGORYTHM':
       SETTINGS.algorythm = val;
@@ -264,6 +264,26 @@ const DijkstraSolver = function () {
     }
   }
 
+  this.cellWeight = function(c){
+    //return Math.random();
+    //return 1;
+
+    if (c >= GRID.width && GRID.cells[c - GRID.width] == WALL) 
+      return 10;
+    
+    if (c < GRID.width * (GRID.height - 1) && GRID.cells[c + GRID.width] == WALL) 
+      return 10;
+    
+    if (c % GRID.width != GRID.width - 1 && GRID.cells[c +1] == WALL) 
+      return 10;
+    
+    if (c % GRID.width != 0 && GRID.cells[c - 1] == WALL) 
+      return 10;
+    
+
+    return 1;
+  }
+
   this.pickCell = function () {
     var cost = Infinity;
     var index = undefined;
@@ -329,8 +349,10 @@ const DijkstraSolver = function () {
         if (cell_n != null) {
           for (let i = 0; i < cell_n.length; i++) {
 
-            if (this.costArr[cell] + 1 < this.costArr[cell_n[i]]) {
-              this.costArr[cell_n[i]] = this.costArr[cell] + 1;
+            var cell_weight = this.cellWeight(cell_n[i]);
+
+            if (this.costArr[cell] + cell_weight < this.costArr[cell_n[i]]) {
+              this.costArr[cell_n[i]] = this.costArr[cell] + cell_weight;
               this.previousArr[cell_n[i]] = cell;
               if (cell_n[i] == GRID.id(GRID.endCell.x, GRID.endCell.y)) {
                 this.drawPath();

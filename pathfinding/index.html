@@ -16,14 +16,16 @@
 
     <div id="right" oncontextmenu="return false;">
 
-        <div>
+        <div class = "settingDiv">
             <label for="size">cell size:</label>
             <input type="range" min="20" max="40" value="30" name="size" onchange="changeSettings('SIZE', this.value);">
         </div>
 
         <hr>
 
-        <div>
+        <div id = "coverDiv"></div>
+
+        <div class = "settingDiv">
             <label for="algorythm">algorythm:</label>
             <select name="algorythm" onchange="changeSettings('ALGORYTHM', this.value);">
                 <option value="DIJSKTRA">DIJSKTRA</option>
@@ -33,7 +35,7 @@
 
         <hr>
 
-        <div id = 'heuristicsDiv'>
+        <div id = 'heuristicsDiv' class = "settingDiv">
             <label for="heuristics">heuristics:</label>
             <select name="heuristics" onchange="changeSettings('HEURISTICS', this.value);">
                 <option value="EUKLIDES">NONE</option>
@@ -46,21 +48,32 @@
 
         <hr>
 
-        <div>
+        <div class = "settingDiv">
+            <label for="weighting">weighting:</label>
+            <select name="weighting" onchange="changeSettings('WEIGHTING', this.value);">
+                <option value="HOMOGENIC">HOMOGENIC</option>
+                <option value="AVOID_WALLS">AVOID WALLS</option>
+                <option value="RANDOM">RANDOM</option>
+            </select>
+        </div>
+
+        <hr>
+
+        <div class = "settingDiv">
             <label for="bi-directional">bi-directional: </label>
             <input type="checkbox" name="bi-directional">
         </div>
 
         <hr>
 
-        <div>
+        <div class = "settingDiv">
             <label for="diagonal">diagonal: </label>
             <input type="checkbox" name="diagonal">
         </div>
 
         <hr>
 
-        <div>
+        <div class = "settingDiv">
             <label for="speed">speed:</label>
             <input type="range" step="5" min="1" max="51" value="26" name="speed"
                 onchange="changeSettings('SPEED', this.value);">
@@ -70,14 +83,14 @@
         <hr>
 
 
-        <div>
+        <div class = "settingDiv">
             <button onclick="runButton();" id = 'runButton'>RUN</button>
         </div>
 
         <hr>
 
 
-        <div>
+        <div class = "settingDiv">
             <button onclick="resetButton();">RESET</button>
         </div>
 
