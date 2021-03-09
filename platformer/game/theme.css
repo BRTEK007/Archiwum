@@ -11,6 +11,9 @@ body{
 }
 
 canvas{
+    position: absolute;
+    left: calc((100% - 1728px) / 2);
+    top: calc((100% - 960px) / 2);
     height: 960px;
     width: 1728px;
     image-rendering: pixelated;
@@ -98,4 +101,7 @@ canvas{
     border-top: none;
     position: absolute;
     left: calc(50vw - 60px);
+    text-align: center;
+    top: 0;
+    z-index: 1;
 }
