@@ -26,16 +26,17 @@
         <div>
             <label for="algorythm">algorythm:</label>
             <select name="algorythm" onchange="changeSettings('ALGORYTHM', this.value);">
-                <option value="RDFS">A*</option>
-                <option value="KRUSKAL">DIJSKTRA</option>
+                <option value="DIJSKTRA">DIJSKTRA</option>
+                <option value="DFS">DFS</option>
             </select>
         </div>
 
         <hr>
 
-        <div>
+        <div id = 'heuristicsDiv'>
             <label for="heuristics">heuristics:</label>
             <select name="heuristics" onchange="changeSettings('HEURISTICS', this.value);">
+                <option value="EUKLIDES">NONE</option>
                 <option value="EUKLIDES">EUKLIDES</option>
                 <option value="MANHATTAN">MANHATTAN</option>
                 <option value="CHEBYSHEW">CHEBYSHEW</option>
@@ -70,14 +71,14 @@
 
 
         <div>
-            <button onclick="runButton();">RUN</button>
+            <button onclick="runButton();" id = 'runButton'>RUN</button>
         </div>
 
         <hr>
 
 
         <div>
-            <button onclick="clearButton();">CLEAR</button>
+            <button onclick="resetButton();">RESET</button>
         </div>
 
     </div>

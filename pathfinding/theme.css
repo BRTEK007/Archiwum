@@ -55,6 +55,7 @@ body {
     box-sizing: border-box;
     width: 180px;
     margin: 10px;
+    display: block;
 }
 
 #right div button,

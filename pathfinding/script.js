@@ -13,11 +13,11 @@ const BRUSH = {
 
 const COLORS = {
   GRID_LINE: "#7d7d7d",
-  WALL: "white",
+  WALL: "#ababab",
   EMPTY: "black",
   START_NODE: "green",
   END_NODE: "red",
-  MARKED: "purple",
+  MARKED: "#00698f",
   PATH: "yellow"
 }
 
@@ -28,6 +28,8 @@ const SETTINGS = {
   algorythm: 'A*',
   diagonal: true,
   speed: 26,
+  heuristics: 'NONE',
+  paused : false
 }
 
 const GRID = {
@@ -81,6 +83,8 @@ function updateGridDimensions() {
   GRID.offset_x = Math.floor((canvas.width - (GRID.cell_size + 1) * GRID.width) / 2);
   GRID.offset_y = Math.floor((canvas.height - (GRID.cell_size + 1) * GRID.height) / 2);
   GRID.cells = new Array(GRID.width * GRID.height).fill(EMPTY);
+  GRID.startCell = { x: Math.round(GRID.width * 0.3333), y: Math.round(GRID.height/2) };
+  GRID.endCell = { x: Math.round(GRID.width * 0.6666), y: Math.round(GRID.height/2) };
 }
 
 function changeSettings(param, val) {
@@ -92,9 +96,11 @@ function changeSettings(param, val) {
       break;
     case 'ALGORYTHM':
       SETTINGS.algorythm = val;
+      if(val == 'DFS') document.getElementById('heuristicsDiv').style.display = 'none';
+      else document.getElementById('heuristicsDiv').style.display = 'block';
       break;
-    case 'SPACING':
-      SETTINGS.diagonal = val;
+    case 'HEURISTICS':
+      SETTINGS.heuristics = val;
       break;
     case 'SPEED':
       SETTINGS.speed = parseInt(val);
@@ -204,8 +210,8 @@ function pageLoaded() {
   canvas.width = canvas.getBoundingClientRect().width;
   ctx = canvas.getContext('2d');
   updateGridDimensions();
-  GRID.startCell = { x: Math.floor(Math.random() * (GRID.width - 1)), y: Math.floor(Math.random() * (GRID.height - 1)) }
-  GRID.endCell = { x: GRID.width - GRID.startCell.x + 1, y: GRID.height - GRID.startCell.y + 1 }
+  GRID.startCell = { x: Math.round(GRID.width * 0.3333), y: Math.round(GRID.height/2) };
+  GRID.endCell = { x: Math.round(GRID.width * 0.6666), y: Math.round(GRID.height/2) };
   drawGrid();
   painting = false;
 
@@ -214,7 +220,7 @@ function pageLoaded() {
 }
 
 function frame() {
-  if (solver != null && !solver.finished) {
+  if (solver != null && !solver.finished && !SETTINGS.paused) {
     solver.update();
   }
   window.requestAnimationFrame(frame);
@@ -242,44 +248,31 @@ const DijkstraSolver = function () {
     else return null;
   }
 
-  this.cellDist = function (c1, c2) {
+  this.heuristics = function (c1, c2) {
+    if(SETTINGS.heuristics == 'NONE') return 0;
+
     let c1x = c1 % GRID.width;
     let c1y = (c1 - c1x) / GRID.width;
     let c2x = c2 % GRID.width;
     let c2y = (c2 - c2x) / GRID.width;
 
-    //return  (c1x-c2x)*(c1x-c2x) + (c1y-c2y)*(c1y-c2y); //euklides ^2
-    return Math.sqrt((c1x - c2x) * (c1x - c2x) + (c1y - c2y) * (c1y - c2y));//euklides
-    //return Math.abs(c1x - c2x) + Math.abs(c1y - c2y);//Manhattan
-    //return Math.max(Math.abs(c1x - c2x), Math.abs(c1y - c2y));//Chebyshew
-    //return Math.max(Math.abs(c1x - c2x), Math.abs(c1y - c2y) + 1.414*Math.min(Math.abs(c1x - c2x),Math.abs(c1y - c2y)));
-  }
-
-  this.pickCell2 = function () {
-    var cost = Infinity;
-    var index = undefined;
-
-    let endCell = GRID.id(GRID.endCell.x, GRID.endCell.y);
-
-    for (let i = 0; i < this.queue.length; i++) {
-      if (this.costArr[this.queue[i]] + this.cellDist(this.queue[i], endCell) < cost) {
-        cost = this.costArr[this.queue[i]] + this.cellDist(this.queue[i], endCell);
-        index = i;
-      }
+    switch(SETTINGS.heuristics){
+      case 'EUKLIDES': return Math.sqrt((c1x - c2x) * (c1x - c2x) + (c1y - c2y) * (c1y - c2y));
+      case 'MANHATTAN': return Math.abs(c1x - c2x) + Math.abs(c1y - c2y);
+      case 'CHEBYSHEW': return Math.max(Math.abs(c1x - c2x), Math.abs(c1y - c2y));
+      case 'OCTILE': return Math.max(Math.abs(c1x - c2x), Math.abs(c1y - c2y) + 1.414*Math.min(Math.abs(c1x - c2x),Math.abs(c1y - c2y)));
     }
-
-    let cell = this.queue[index];
-    this.queue.splice(index, 1);
-    return cell;
   }
 
   this.pickCell = function () {
     var cost = Infinity;
     var index = undefined;
 
+    let endCell = GRID.id(GRID.endCell.x, GRID.endCell.y);
+
     for (let i = 0; i < this.queue.length; i++) {
-      if (this.costArr[this.queue[i]] < cost) {
-        cost = this.costArr[this.queue[i]];
+      if (this.costArr[this.queue[i]] + this.heuristics(this.queue[i], endCell) < cost) {
+        cost = this.costArr[this.queue[i]] + this.heuristics(this.queue[i], endCell);
         index = i;
       }
     }
@@ -340,8 +333,9 @@ const DijkstraSolver = function () {
               this.costArr[cell_n[i]] = this.costArr[cell] + 1;
               this.previousArr[cell_n[i]] = cell;
               if (cell_n[i] == GRID.id(GRID.endCell.x, GRID.endCell.y)) {
-                this.finished = true;
                 this.drawPath();
+                this.finished = true;
+                document.getElementById('runButton').innerHTML = "CLEAR";
                 return;
               }
             }
@@ -351,6 +345,7 @@ const DijkstraSolver = function () {
       }
       else {
         this.finished = true;
+        document.getElementById('runButton').innerHTML = "CLEAR";
         return;
       }
 
@@ -360,15 +355,36 @@ const DijkstraSolver = function () {
 
 }
 
-function runButton() {
-  drawGrid();
-  drawWalls();
-  solver = new DijkstraSolver();
-  solver.init();
+function runButton(state) {
+  var button = document.getElementById('runButton');
+
+  switch(button.innerHTML){
+    case 'RUN':
+      solver = new DijkstraSolver();
+      solver.init();
+      button.innerHTML = 'PAUSE';
+    break;
+    case 'PAUSE':
+      SETTINGS.paused = true;
+      button.innerHTML = 'RESUME';
+      break;
+    case 'RESUME':
+        SETTINGS.paused = false;
+        button.innerHTML = 'PAUSE';
+        break;
+    case 'CLEAR':
+      drawGrid();
+      drawWalls();
+      solver = null;
+      button.innerHTML = 'RUN'; break;
+  }
 }
 
-function clearButton() {
+function resetButton() {
   GRID.cells = new Array(GRID.width * GRID.height).fill(EMPTY);
+  GRID.startCell = { x: Math.round(GRID.width * 0.3333), y: Math.round(GRID.height/2) }
+  GRID.endCell = { x: Math.round(GRID.width * 0.6666), y: Math.round(GRID.height/2) }
   drawGrid();
   solver = null;
+  document.getElementById('runButton').innerHTML = "RUN";
 }
