@@ -29,7 +29,8 @@ const SETTINGS = {
   diagonal: true,
   speed: 26,
   heuristics: 'NONE',
-  paused : false
+  paused : false,
+  weighting: 'HOMOGENIC'
 }
 
 const GRID = {
@@ -104,6 +105,10 @@ function changeSettings(param, val) {
       break;
     case 'SPEED':
       SETTINGS.speed = parseInt(val);
+      break;
+    case 'WEIGHTING':
+      SETTINGS.weighting = val;
+      console.log(SETTINGS.weighting);
       break;
   }
 }
@@ -265,8 +270,8 @@ const DijkstraSolver = function () {
   }
 
   this.cellWeight = function(c){
-    //return Math.random();
-    //return 1;
+    if(SETTINGS.weighting == 'HOMOGENIC') return 1;
+    if(SETTINGS.weighting == 'RANDOM') return Math.random();
 
     if (c >= GRID.width && GRID.cells[c - GRID.width] == WALL) 
       return 10;
