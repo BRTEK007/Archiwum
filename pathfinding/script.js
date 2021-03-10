@@ -2,7 +2,12 @@ var canvas, ctx;
 var solver;
 
 
-var painting, brush = 0;
+
+const INPUT = {
+  painting: false,
+  brush: 0,
+  oldMouseCords: {x : null, y : null}
+}
 
 const BRUSH = {
   WALL: 0,
@@ -29,7 +34,7 @@ const SETTINGS = {
   diagonal: true,
   speed: 26,
   heuristics: 'NONE',
-  paused : false,
+  paused: false,
   weighting: 'HOMOGENIC'
 }
 
@@ -66,6 +71,27 @@ function drawGrid() {
   drawCell(GRID.endCell.x, GRID.endCell.y);
 }
 
+function drawCell(cx, cy) {
+  let x = GRID.offset_x + cx * (GRID.cell_size + 1);
+  let y = GRID.offset_y + cy * (GRID.cell_size + 1);
+  let w = GRID.cell_size;
+  let h = GRID.cell_size;
+  if (cx == 0) {
+    w += GRID.offset_x;
+    x -= GRID.offset_x;
+  } else if (cx == GRID.width - 1) {
+    w += GRID.offset_x + 2;
+  }
+  if (cy == 0) {
+    h += GRID.offset_y;
+    y -= GRID.offset_y;
+  } else if (cy == GRID.height - 1) {
+    h += GRID.offset_y + 2;
+  }
+  //ctx.fillStyle = "white";
+  ctx.fillRect(x + 1, y + 1, w - 1, h - 1);
+}
+
 function drawWalls() {
   ctx.fillStyle = COLORS.WALL;
   for (var x = 0; x < GRID.width; x++) {
@@ -77,6 +103,26 @@ function drawWalls() {
   }
 }
 
+function lineCords(x0, y0, x1, y1) {
+  var arr = new Array();
+
+  if (Math.abs(x0 - x1) > Math.abs(y0 - y1)) {
+    var step = (y1 - y0) / (x1 - x0);
+    for (let x = x0; x <= x1; x++) {
+      let y = y0 + Math.round((x - x0) * step);
+      arr.push(x,y);
+    }
+  }else{
+    var step = (x1 - x0) / (y1 - y0);
+    for (let y = y0; y <= y1; y++) {
+      let x = x0 + Math.round((y - y0) * step);
+      arr.push(x,y);
+    }
+  }
+
+  return arr;
+}
+
 function updateGridDimensions() {
   GRID.cell_size = SETTINGS.size;
   GRID.width = Math.floor((canvas.width - 1) / (GRID.cell_size + 1));
@@ -84,8 +130,8 @@ function updateGridDimensions() {
   GRID.offset_x = Math.floor((canvas.width - (GRID.cell_size + 1) * GRID.width) / 2);
   GRID.offset_y = Math.floor((canvas.height - (GRID.cell_size + 1) * GRID.height) / 2);
   GRID.cells = new Array(GRID.width * GRID.height).fill(EMPTY);
-  GRID.startCell = { x: Math.round(GRID.width * 0.3333), y: Math.round(GRID.height/2) };
-  GRID.endCell = { x: Math.round(GRID.width * 0.6666), y: Math.round(GRID.height/2) };
+  GRID.startCell = { x: Math.round(GRID.width * 0.3333), y: Math.round(GRID.height / 2) };
+  GRID.endCell = { x: Math.round(GRID.width * 0.6666), y: Math.round(GRID.height / 2) };
 }
 
 function changeSettings(param, val) {
@@ -97,7 +143,7 @@ function changeSettings(param, val) {
       break;
     case 'ALGORYTHM':
       SETTINGS.algorythm = val;
-      if(val == 'DFS') document.getElementById('heuristicsDiv').style.display = 'none';
+      if (val == 'DFS') document.getElementById('heuristicsDiv').style.display = 'none';
       else document.getElementById('heuristicsDiv').style.display = 'block';
       break;
     case 'HEURISTICS':
@@ -123,61 +169,43 @@ function mouseCordsToCellCords(mx, my) {
   return { x: cx, y: cy }
 }
 
-function drawCell(cx, cy) {
-  let x = GRID.offset_x + cx * (GRID.cell_size + 1);
-  let y = GRID.offset_y + cy * (GRID.cell_size + 1);
-  let w = GRID.cell_size;
-  let h = GRID.cell_size;
-  if (cx == 0) {
-    w += GRID.offset_x;
-    x -= GRID.offset_x;
-  } else if (cx == GRID.width - 1) {
-    w += GRID.offset_x + 2;
-  }
-  if (cy == 0) {
-    h += GRID.offset_y;
-    y -= GRID.offset_y;
-  } else if (cy == GRID.height - 1) {
-    h += GRID.offset_y + 2;
-  }
-  //ctx.fillStyle = "white";
-  ctx.fillRect(x + 1, y + 1, w - 1, h - 1);
-}
-
 function pageLoaded() {
   canvas = document.getElementById('canvas1');
 
   canvas.addEventListener('mousedown', e => {
     if (solver != null) return;
-    painting = true;
+    INPUT.painting = true;
 
     let cords = mouseCordsToCellCords(e.offsetX, e.offsetY);
+    INPUT.oldMouseCords = {x: cords.x, y: cords.y};
 
     if (cords.x == GRID.startCell.x && cords.y == GRID.startCell.y) {
-      brush = BRUSH.START;
+      INPUT.brush = BRUSH.START;
     } else if (cords.x == GRID.endCell.x && cords.y == GRID.endCell.y) {
-      brush = BRUSH.END;
+      INPUT.brush = BRUSH.END;
     } else {
       if (e.button == 0) {
         ctx.fillStyle = COLORS.WALL;
-        brush = BRUSH.WALL;
+        INPUT.brush = BRUSH.WALL;
       }
       else if (e.button == 2) {
         ctx.fillStyle = COLORS.EMPTY;
-        brush = BRUSH.EMPTY;
+        INPUT.brush = BRUSH.EMPTY;
       }
       let id = cords.x + cords.y * GRID.width;
-      GRID.cells[id] = brush == BRUSH.WALL ? WALL : EMPTY;
+      GRID.cells[id] = INPUT.brush == BRUSH.WALL ? WALL : EMPTY;
       drawCell(cords.x, cords.y);
     }
   });
 
   canvas.addEventListener('mousemove', e => {
-    if (!painting) return;
+    if (!INPUT.painting) return;
     let cords = mouseCordsToCellCords(e.offsetX, e.offsetY);
 
-    if (brush == BRUSH.START) {
+    if (INPUT.brush == BRUSH.START) {
       if (cords.x == GRID.endCell.x && cords.y == GRID.endCell.y) return;
+      let id = cords.x + cords.y * GRID.width;
+      if(GRID.cells[id] == WALL) return;
       let oldId = GRID.startCell.x + GRID.startCell.y * GRID.width;
       ctx.fillStyle = GRID.cells[oldId] == WALL ? COLORS.WALL : COLORS.EMPTY;
       drawCell(GRID.startCell.x, GRID.startCell.y);
@@ -185,8 +213,11 @@ function pageLoaded() {
       drawCell(cords.x, cords.y);
       GRID.startCell.x = cords.x;
       GRID.startCell.y = cords.y;
-    } else if (brush == BRUSH.END) {
+      return;
+    } else if (INPUT.brush == BRUSH.END) {
       if (cords.x == GRID.startCell.x && cords.y == GRID.startCell.y) return;
+      let id = cords.x + cords.y * GRID.width;
+      if(GRID.cells[id] == WALL) return;
       let oldId = GRID.endCell.x + GRID.endCell.y * GRID.width;
       ctx.fillStyle = GRID.cells[oldId] == WALL ? COLORS.WALL : COLORS.EMPTY;
       drawCell(GRID.endCell.x, GRID.endCell.y);
@@ -194,20 +225,24 @@ function pageLoaded() {
       drawCell(cords.x, cords.y);
       GRID.endCell.x = cords.x;
       GRID.endCell.y = cords.y;
+      return;
     }
 
     if (cords.x == GRID.startCell.x && cords.y == GRID.startCell.y) return;
     else if (cords.x == GRID.endCell.x && cords.y == GRID.endCell.y) return;
+
     let id = cords.x + cords.y * GRID.width;
-    GRID.cells[id] = brush == BRUSH.WALL ? WALL : EMPTY;
+    GRID.cells[id] = INPUT.brush == BRUSH.WALL ? WALL : EMPTY;
+
     drawCell(cords.x, cords.y);
+    INPUT.oldMouseCords = {x: cords.x, y: cords.y};
   });
 
   canvas.addEventListener('mouseup', e => {
-    painting = false;
+    INPUT.painting = false;
   });
   canvas.addEventListener('mouseleave', e => {
-    painting = false;
+    INPUT.painting = false;
   });
 
 
@@ -215,10 +250,10 @@ function pageLoaded() {
   canvas.width = canvas.getBoundingClientRect().width;
   ctx = canvas.getContext('2d');
   updateGridDimensions();
-  GRID.startCell = { x: Math.round(GRID.width * 0.3333), y: Math.round(GRID.height/2) };
-  GRID.endCell = { x: Math.round(GRID.width * 0.6666), y: Math.round(GRID.height/2) };
+  GRID.startCell = { x: Math.round(GRID.width * 0.3333), y: Math.round(GRID.height / 2) };
+  GRID.endCell = { x: Math.round(GRID.width * 0.6666), y: Math.round(GRID.height / 2) };
   drawGrid();
-  painting = false;
+  INPUT.painting = false;
 
 
   window.requestAnimationFrame(frame);
@@ -242,7 +277,7 @@ const DijkstraSolver = function () {
     if (c < GRID.width * (GRID.height - 1) && !this.visitedArr[c + GRID.width] && GRID.cells[c + GRID.width] != WALL) {
       arr.push(c + GRID.width);
     }
-    if (c % GRID.width != GRID.width - 1 && !this.visitedArr[c + 1] && GRID.cells[c +1] != WALL) {
+    if (c % GRID.width != GRID.width - 1 && !this.visitedArr[c + 1] && GRID.cells[c + 1] != WALL) {
       arr.push(c + 1);
     }
     if (c % GRID.width != 0 && !this.visitedArr[c - 1] && GRID.cells[c - 1] != WALL) {
@@ -254,37 +289,37 @@ const DijkstraSolver = function () {
   }
 
   this.heuristics = function (c1, c2) {
-    if(SETTINGS.heuristics == 'NONE') return 0;
+    if (SETTINGS.heuristics == 'NONE') return 0;
 
     let c1x = c1 % GRID.width;
     let c1y = (c1 - c1x) / GRID.width;
     let c2x = c2 % GRID.width;
     let c2y = (c2 - c2x) / GRID.width;
 
-    switch(SETTINGS.heuristics){
+    switch (SETTINGS.heuristics) {
       case 'EUKLIDES': return Math.sqrt((c1x - c2x) * (c1x - c2x) + (c1y - c2y) * (c1y - c2y));
       case 'MANHATTAN': return Math.abs(c1x - c2x) + Math.abs(c1y - c2y);
       case 'CHEBYSHEW': return Math.max(Math.abs(c1x - c2x), Math.abs(c1y - c2y));
-      case 'OCTILE': return Math.max(Math.abs(c1x - c2x), Math.abs(c1y - c2y) + 1.414*Math.min(Math.abs(c1x - c2x),Math.abs(c1y - c2y)));
+      case 'OCTILE': return Math.max(Math.abs(c1x - c2x), Math.abs(c1y - c2y) + 1.414 * Math.min(Math.abs(c1x - c2x), Math.abs(c1y - c2y)));
     }
   }
 
-  this.cellWeight = function(c){
-    if(SETTINGS.weighting == 'HOMOGENIC') return 1;
-    if(SETTINGS.weighting == 'RANDOM') return Math.random();
+  this.cellWeight = function (c) {
+    if (SETTINGS.weighting == 'HOMOGENIC') return 1;
+    if (SETTINGS.weighting == 'RANDOM') return Math.random();
 
-    if (c >= GRID.width && GRID.cells[c - GRID.width] == WALL) 
+    if (c >= GRID.width && GRID.cells[c - GRID.width] == WALL)
       return 10;
-    
-    if (c < GRID.width * (GRID.height - 1) && GRID.cells[c + GRID.width] == WALL) 
+
+    if (c < GRID.width * (GRID.height - 1) && GRID.cells[c + GRID.width] == WALL)
       return 10;
-    
-    if (c % GRID.width != GRID.width - 1 && GRID.cells[c +1] == WALL) 
+
+    if (c % GRID.width != GRID.width - 1 && GRID.cells[c + 1] == WALL)
       return 10;
-    
-    if (c % GRID.width != 0 && GRID.cells[c - 1] == WALL) 
+
+    if (c % GRID.width != 0 && GRID.cells[c - 1] == WALL)
       return 10;
-    
+
 
     return 1;
   }
@@ -385,20 +420,20 @@ const DijkstraSolver = function () {
 function runButton(state) {
   var button = document.getElementById('runButton');
 
-  switch(button.innerHTML){
+  switch (button.innerHTML) {
     case 'RUN':
       solver = new DijkstraSolver();
       solver.init();
       button.innerHTML = 'PAUSE';
-    break;
+      break;
     case 'PAUSE':
       SETTINGS.paused = true;
       button.innerHTML = 'RESUME';
       break;
     case 'RESUME':
-        SETTINGS.paused = false;
-        button.innerHTML = 'PAUSE';
-        break;
+      SETTINGS.paused = false;
+      button.innerHTML = 'PAUSE';
+      break;
     case 'CLEAR':
       drawGrid();
       drawWalls();
@@ -409,8 +444,8 @@ function runButton(state) {
 
 function resetButton() {
   GRID.cells = new Array(GRID.width * GRID.height).fill(EMPTY);
-  GRID.startCell = { x: Math.round(GRID.width * 0.3333), y: Math.round(GRID.height/2) }
-  GRID.endCell = { x: Math.round(GRID.width * 0.6666), y: Math.round(GRID.height/2) }
+  GRID.startCell = { x: Math.round(GRID.width * 0.3333), y: Math.round(GRID.height / 2) }
+  GRID.endCell = { x: Math.round(GRID.width * 0.6666), y: Math.round(GRID.height / 2) }
   drawGrid();
   solver = null;
   document.getElementById('runButton').innerHTML = "RUN";
