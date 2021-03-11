@@ -1,6 +1,5 @@
 var canvas, ctx;
-var solver;
-
+var painter;
 
 
 const INPUT = {
@@ -173,7 +172,7 @@ function pageLoaded() {
   canvas = document.getElementById('canvas1');
 
   canvas.addEventListener('mousedown', e => {
-    if (solver != null) return;
+    if (painter != null) return;
     INPUT.painting = true;
 
     let cords = mouseCordsToCellCords(e.offsetX, e.offsetY);
@@ -260,14 +259,13 @@ function pageLoaded() {
 }
 
 function frame() {
-  if (solver != null && !solver.finished && !SETTINGS.paused) {
-    solver.update();
+  if (painter != null && !painter.finished && !SETTINGS.paused) {
+    painter.update();
   }
   window.requestAnimationFrame(frame);
 }
 
-const DijkstraSolverOriginal = function () {
-
+function DijkstraSolve() {
   this.neighbours = function (c) {
     var arr = [];
 
@@ -342,256 +340,88 @@ const DijkstraSolverOriginal = function () {
     return cell;
   }
 
-  this.init = function () {
-    this.finished = false;
-    this.costArr = new Array(GRID.width * GRID.height).fill(Infinity);
-    this.previousArr = new Array(GRID.width * GRID.height).fill(undefined);
-    this.visitedArr = new Array(GRID.width * GRID.height).fill(false);
+  this.addPathToSolution = function () {
+    this.solution.push(null);
 
-    let startCell = GRID.id(GRID.startCell.x, GRID.startCell.y);
-    this.costArr[startCell] = 0;
-    this.queue = [startCell];
-    ctx.fillStyle = COLORS.MARKED;
-  }
-
-  this.drawPath = function () {
-    ctx.fillStyle = COLORS.PATH;
     let cell = this.previousArr[GRID.id(GRID.endCell.x, GRID.endCell.y)];
     while (this.previousArr[cell] != undefined) {
-      let cx = cell % GRID.width;
-      let cy = (cell - cx) / GRID.width;
-      if (!(cx == GRID.startCell.x && cy == GRID.startCell.y))
-        drawCell(cx, cy);
-
+      this.solution.push(cell);
       cell = this.previousArr[cell];
     }
   }
 
-  this.update = function () {
-    for (let f = 0; f < SETTINGS.speed; f++) {
+  this.costArr = new Array(GRID.width * GRID.height).fill(Infinity);
+  this.previousArr = new Array(GRID.width * GRID.height).fill(undefined);
+  this.visitedArr = new Array(GRID.width * GRID.height).fill(false);
 
-      if (this.queue.length > 0) {
-        var cell = this.pickCell();
+  var startCell = GRID.id(GRID.startCell.x, GRID.startCell.y);
+  var endCell = GRID.id(GRID.endCell.x, GRID.endCell.y);
 
-        if (this.visitedArr[cell] == true || GRID.cells[cell] == WALL) {
-          f--;
-          continue;
-        }
+  this.costArr[startCell] = 0;
+  this.queue = [startCell];
 
-        let cx = cell % GRID.width;
-        let cy = (cell - cx) / GRID.width;
-        if (!(cx == GRID.startCell.x && cy == GRID.startCell.y))
-          drawCell(cx, cy);
+  this.solution = new Array();
 
-        this.visitedArr[cell] = true;
+  this.solutionIndex = 0;
 
-        var cell_n = this.neighbours(cell);
-        if (cell_n != null) {
-          for (let i = 0; i < cell_n.length; i++) {
+  while (this.queue.length > 0) {
+    var cell = this.pickCell();
 
-            var cell_weight = this.cellWeight(cell_n[i]);
+    if (this.visitedArr[cell] == true || GRID.cells[cell] == WALL) continue;
 
-            if (this.costArr[cell] + cell_weight < this.costArr[cell_n[i]]) {
-              this.costArr[cell_n[i]] = this.costArr[cell] + cell_weight;
-              this.previousArr[cell_n[i]] = cell;
-              if (cell_n[i] == GRID.id(GRID.endCell.x, GRID.endCell.y)) {
-                this.drawPath();
-                this.finished = true;
-                document.getElementById('runButton').innerHTML = "CLEAR";
-                return;
-              }
-            }
-            this.queue.push(cell_n[i]);
+
+    if (cell != startCell && cell != endCell)
+      this.solution.push(cell);
+
+    this.visitedArr[cell] = true;
+
+    var cell_n = this.neighbours(cell);
+    if (cell_n != null) {
+      for (let i = 0; i < cell_n.length; i++) {
+
+        var cell_weight = this.cellWeight(cell_n[i]);
+
+        if (this.costArr[cell] + cell_weight < this.costArr[cell_n[i]]) {
+          this.costArr[cell_n[i]] = this.costArr[cell] + cell_weight;
+          this.previousArr[cell_n[i]] = cell;
+          if (cell_n[i] == GRID.id(GRID.endCell.x, GRID.endCell.y)) {
+            this.addPathToSolution();
+            return this.solution;
           }
         }
+        this.queue.push(cell_n[i]);
       }
-      else {
-        this.finished = true;
-        document.getElementById('runButton').innerHTML = "CLEAR";
-        return;
-      }
-
     }
-
   }
+
+  return this.solution;
 
 }
 
-const DijkstraSolver = function () {
-
-  this.neighbours = function (c) {
-    var arr = [];
-
-    if (c >= GRID.width && this.visitedArr[c - GRID.width] != this.turn && GRID.cells[c - GRID.width] != WALL) {
-      arr.push(c - GRID.width);
-    }
-    if (c < GRID.width * (GRID.height - 1) && this.visitedArr[c + GRID.width] != this.turn && GRID.cells[c + GRID.width] != WALL) {
-      arr.push(c + GRID.width);
-    }
-    if (c % GRID.width != GRID.width - 1 && this.visitedArr[c + 1] != this.turn && GRID.cells[c + 1] != WALL) {
-      arr.push(c + 1);
-    }
-    if (c % GRID.width != 0 && this.visitedArr[c - 1] != this.turn && GRID.cells[c - 1] != WALL) {
-      arr.push(c - 1);
-    }
-
-    if (arr.length > 0) return arr;
-    else return null;
-  }
-
-  this.heuristics = function (c1, c2) {
-    if (SETTINGS.heuristics == 'NONE') return 1;
-
-    let c1x = c1 % GRID.width;
-    let c1y = (c1 - c1x) / GRID.width;
-    let c2x = c2 % GRID.width;
-    let c2y = (c2 - c2x) / GRID.width;
-
-    switch (SETTINGS.heuristics) {
-      case 'EUKLIDES': return Math.sqrt((c1x - c2x) * (c1x - c2x) + (c1y - c2y) * (c1y - c2y));
-      case 'MANHATTAN': return Math.abs(c1x - c2x) + Math.abs(c1y - c2y);
-      case 'CHEBYSHEW': return Math.max(Math.abs(c1x - c2x), Math.abs(c1y - c2y));
-      case 'OCTILE': return Math.max(Math.abs(c1x - c2x), Math.abs(c1y - c2y) + 1.414 * Math.min(Math.abs(c1x - c2x), Math.abs(c1y - c2y)));
-    }
-  }
-
-  this.cellWeight = function (c) {
-    if (SETTINGS.weighting == 'HOMOGENIC') return 1;
-    if (SETTINGS.weighting == 'RANDOM') return Math.random();
-
-    if (c >= GRID.width && GRID.cells[c - GRID.width] == WALL)
-      return 10;
-
-    if (c < GRID.width * (GRID.height - 1) && GRID.cells[c + GRID.width] == WALL)
-      return 10;
-
-    if (c % GRID.width != GRID.width - 1 && GRID.cells[c + 1] == WALL)
-      return 10;
-
-    if (c % GRID.width != 0 && GRID.cells[c - 1] == WALL)
-      return 10;
-
-
-    return 1;
-  }
-
-  this.pickCell = function (queue) {
-    var cost = Infinity;
-    var index = undefined;
-
-
-    let goalCell = this.turn ? GRID.id(GRID.endCell.x, GRID.endCell.y) : GRID.id(GRID.startCell.x, GRID.startCell.y);
-
-    if (this.turn) {
-      for (let i = 0; i < queue.length; i++) {
-        if (this.costArr[queue[i]] + this.heuristics(queue[i], goalCell) < cost) {
-          cost = this.costArr[queue[i]] + this.heuristics(queue[i], goalCell);
-          index = i;
-        }
-      }
-      let cell = queue[index];
-      queue.splice(index, 1);
-      return cell;
-    }
-
-  }
-
-  this.init = function () {
-    this.finished = false;
-    this.costArr = new Array(GRID.width * GRID.height).fill(Infinity);
-    this.previousArr = new Array(GRID.width * GRID.height).fill(undefined);
-    this.visitedArr = new Array(GRID.width * GRID.height).fill(null);//null - unvisited, true - visitedStart, false - visited End
-
-    let startCell = GRID.id(GRID.startCell.x, GRID.startCell.y);
-    this.costArr[startCell] = 0;
-    this.queueStart = [startCell];
-
-    let endCell = GRID.id(GRID.endCell.x, GRID.endCell.y);
-    this.costArr[endCell] = 0;
-    this.queueEnd = [endCell]
-    ctx.fillStyle = COLORS.MARKED;
-
-    this.turn = true;//true - start, false - end
-  }
-
-  this.drawPath = function (connectionCell) {
-    ctx.fillStyle = COLORS.PATH;
-
-    var cell = connectionCell;
-    while (this.previousArr[cell] != undefined) {
-      let cx = cell % GRID.width;
-      let cy = (cell - cx) / GRID.width;
-      if (!(cx == GRID.startCell.x && cy == GRID.startCell.y))
-        drawCell(cx, cy);
-
-      cell = this.previousArr[cell];
-    }
-  }
-
-  this.iteration = function(queue){
-      var cell = this.pickCell(queue);
-
-      if(this.visitedArr[cell] == !this.turn){
-        return cell;
-      }
-
-      if (this.visitedArr[cell] == this.turn || GRID.cells[cell] == WALL) {
-        console.log(this.visitedArr[cell], this.turn);
-        return null;
-      }
-
-      let cx = cell % GRID.width;
-      let cy = (cell - cx) / GRID.width;
-      if (!(cx == GRID.startCell.x && cy == GRID.startCell.y) && !(cx == GRID.endCell.x && cy == GRID.endCell.y))
-        drawCell(cx, cy);
-
-      this.visitedArr[cell] = this.turn;
-
-      var cell_n = this.neighbours(cell);
-      if (cell_n != null) {
-        for (let i = 0; i < cell_n.length; i++) {
-
-          var cell_weight = this.cellWeight(cell_n[i]);
-
-          if (this.costArr[cell] + cell_weight < this.costArr[cell_n[i]]) {
-            this.costArr[cell_n[i]] = this.costArr[cell] + cell_weight;
-            this.previousArr[cell_n[i]] = cell;
-          }
-          queue.push(cell_n[i]);
-        }
-      }
-      return true;
-  }
+function SolutionPainter(solution) {
+  this.index = 0;
+  this.finished = false;
+  ctx.fillStyle = COLORS.MARKED;
 
   this.update = function () {
+
     for (let f = 0; f < SETTINGS.speed; f++) {
-    
-      var iter;
-
-      if(this.turn && this.queueStart.length > 0){
-        iter = this.iteration(this.queueStart);
-      }else if(!this.turn && this.queueEnd.length > 0){
-        iter = this.iteration(this.queueEnd);
-      }
-
-      if(iter == true){
-        continue;
-      }/*else if(iter == null){
-          f--;
-      }*/
-      else{
-        /*this.drawPath(cell);
+      let cx = solution[this.index] % GRID.width;
+      let cy = (solution[this.index] - cx) / GRID.width;
+      drawCell(cx, cy);
+      this.index++;
+      if (this.index >= solution.length) {
         this.finished = true;
-        document.getElementById('runButton').innerHTML = "CLEAR";*/
-        console.log(iter);
+        document.getElementById('runButton').innerHTML = "CLEAR";
+        return;
+      }else if(solution[this.index] == null){
+        ctx.fillStyle = COLORS.PATH;
+        this.index++;
       }
-      
 
-      this.turn = !this.turn;
     }
 
   }
-
 }
 
 function runButton(state) {
@@ -599,8 +429,11 @@ function runButton(state) {
 
   switch (button.innerHTML) {
     case 'RUN':
-      solver = new DijkstraSolver();
-      solver.init();
+      let t0 = performance.now();
+      let solution = DijkstraSolve();
+      let t1 = performance.now();
+      console.log(t1 - t0 + ' ms');
+      painter = new SolutionPainter(solution);
       button.innerHTML = 'PAUSE';
       break;
     case 'PAUSE':
@@ -614,7 +447,7 @@ function runButton(state) {
     case 'CLEAR':
       drawGrid();
       drawWalls();
-      solver = null;
+      painter = null;
       button.innerHTML = 'RUN'; break;
   }
 }
@@ -624,6 +457,6 @@ function resetButton() {
   GRID.startCell = { x: Math.round(GRID.width * 0.3333), y: Math.round(GRID.height / 2) }
   GRID.endCell = { x: Math.round(GRID.width * 0.6666), y: Math.round(GRID.height / 2) }
   drawGrid();
-  solver = null;
+  painter = null;
   document.getElementById('runButton').innerHTML = "RUN";
 }
