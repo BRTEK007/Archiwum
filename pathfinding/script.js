@@ -105,17 +105,32 @@ function drawWalls() {
 function lineCords(x0, y0, x1, y1) {
   var arr = new Array();
 
+  /*if(x0-x1 == 0 && y0 - y1 == 0){
+    return [{x:x0, y:y0}];
+  }
+  if(x0 > x1){
+    let t = x0;
+    x0 = x1;
+    x1 = t
+  }
+  if(y0 < y1){
+    let t = y0;
+    y0 = y1;
+    y1 = t
+  }*/
+
   if (Math.abs(x0 - x1) > Math.abs(y0 - y1)) {
     var step = (y1 - y0) / (x1 - x0);
     for (let x = x0; x <= x1; x++) {
       let y = y0 + Math.round((x - x0) * step);
-      arr.push(x, y);
+      arr.push({x:x, y:y});
     }
   } else {
     var step = (x1 - x0) / (y1 - y0);
     for (let y = y0; y <= y1; y++) {
       let x = x0 + Math.round((y - y0) * step);
-      arr.push(x, y);
+
+      arr.push({x:x, y:y});
     }
   }
 
@@ -138,7 +153,7 @@ function changeSettings(param, val) {
     case 'SIZE':
       SETTINGS.size = parseInt(val);
       updateGridDimensions();
-      resetButton();
+      button_RESET();
       break;
     case 'ALGORYTHM':
       SETTINGS.algorythm = val;
@@ -234,6 +249,11 @@ function pageLoaded() {
     GRID.cells[id] = INPUT.brush == BRUSH.WALL ? WALL : EMPTY;
 
     drawCell(cords.x, cords.y);
+    /*var cordArr = lineCords(INPUT.oldMouseCords.x, INPUT.oldMouseCords.y, cords.x, cords.y);
+
+    for(let i = 0; i < cordArr.length; i++){
+      drawCell(cordArr[i].x, cordArr[i].y);
+    }*/
     INPUT.oldMouseCords = { x: cords.x, y: cords.y };
   });
 
@@ -424,7 +444,7 @@ function SolutionPainter(solution) {
   }
 }
 
-function runButton(state) {
+function button_RUN() {
   var button = document.getElementById('runButton');
 
   switch (button.innerHTML) {
@@ -435,6 +455,7 @@ function runButton(state) {
       console.log(t1 - t0 + ' ms');
       painter = new SolutionPainter(solution);
       button.innerHTML = 'PAUSE';
+      document.getElementById('coverDiv').style.display = "block";
       break;
     case 'PAUSE':
       SETTINGS.paused = true;
@@ -448,15 +469,25 @@ function runButton(state) {
       drawGrid();
       drawWalls();
       painter = null;
-      button.innerHTML = 'RUN'; break;
+      button.innerHTML = 'RUN';
+      document.getElementById('coverDiv').style.display = "none"; 
+      break;
   }
 }
 
-function resetButton() {
+function button_FILLWALL(){
+  GRID.cells = new Array(GRID.width * GRID.height).fill(WALL);
+  GRID.cells[GRID.id(GRID.startCell.x, GRID.startCell.y)] = EMPTY;
+  GRID.cells[GRID.id(GRID.endCell.x, GRID.endCell.y)] = EMPTY;
+  drawWalls();
+}
+
+function button_RESET() {
   GRID.cells = new Array(GRID.width * GRID.height).fill(EMPTY);
   GRID.startCell = { x: Math.round(GRID.width * 0.3333), y: Math.round(GRID.height / 2) }
   GRID.endCell = { x: Math.round(GRID.width * 0.6666), y: Math.round(GRID.height / 2) }
   drawGrid();
   painter = null;
   document.getElementById('runButton').innerHTML = "RUN";
+  document.getElementById('coverDiv').style.display = "none"; 
 }
