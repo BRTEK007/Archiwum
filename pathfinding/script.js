@@ -475,7 +475,7 @@ const DijkstraSolver = function () {
     return 1;
   }
 
-  this.pickCell = function () {
+  this.pickCell = function (queue) {
     var cost = Infinity;
     var index = undefined;
 
@@ -483,27 +483,17 @@ const DijkstraSolver = function () {
     let goalCell = this.turn ? GRID.id(GRID.endCell.x, GRID.endCell.y) : GRID.id(GRID.startCell.x, GRID.startCell.y);
 
     if (this.turn) {
-      for (let i = 0; i < this.queueStart.length; i++) {
-        if (this.costArr[this.queueStart[i]] + this.heuristics(this.queueStart[i], goalCell) < cost) {
-          cost = this.costArr[this.queueStart[i]] + this.heuristics(this.queueStart[i], goalCell);
+      for (let i = 0; i < queue.length; i++) {
+        if (this.costArr[queue[i]] + this.heuristics(queue[i], goalCell) < cost) {
+          cost = this.costArr[queue[i]] + this.heuristics(queue[i], goalCell);
           index = i;
         }
       }
-      let cell = this.queueStart[index];
-      this.queueStart.splice(index, 1);
+      let cell = queue[index];
+      queue.splice(index, 1);
       return cell;
     }
-    else {
-      for (let i = 0; i < this.queueEnd.length; i++) {
-        if (this.costArr[this.queueEnd[i]] + this.heuristics(this.queueEnd[i], goalCell) < cost) {
-          cost = this.costArr[this.queueEnd[i]] + this.heuristics(this.queueEnd[i], goalCell);
-          index = i;
-        }
-      }
-      let cell = this.queueEnd[index];
-      this.queueEnd.splice(index, 1);
-      return cell;
-    }
+
   }
 
   this.init = function () {
@@ -538,98 +528,64 @@ const DijkstraSolver = function () {
     }
   }
 
+  this.iteration = function(queue){
+      var cell = this.pickCell(queue);
+
+      if(this.visitedArr[cell] == !this.turn){
+        return cell;
+      }
+
+      if (this.visitedArr[cell] == this.turn || GRID.cells[cell] == WALL) {
+        console.log(this.visitedArr[cell], this.turn);
+        return null;
+      }
+
+      let cx = cell % GRID.width;
+      let cy = (cell - cx) / GRID.width;
+      if (!(cx == GRID.startCell.x && cy == GRID.startCell.y) && !(cx == GRID.endCell.x && cy == GRID.endCell.y))
+        drawCell(cx, cy);
+
+      this.visitedArr[cell] = this.turn;
+
+      var cell_n = this.neighbours(cell);
+      if (cell_n != null) {
+        for (let i = 0; i < cell_n.length; i++) {
+
+          var cell_weight = this.cellWeight(cell_n[i]);
+
+          if (this.costArr[cell] + cell_weight < this.costArr[cell_n[i]]) {
+            this.costArr[cell_n[i]] = this.costArr[cell] + cell_weight;
+            this.previousArr[cell_n[i]] = cell;
+          }
+          queue.push(cell_n[i]);
+        }
+      }
+      return true;
+  }
+
   this.update = function () {
     for (let f = 0; f < SETTINGS.speed; f++) {
     
-      if(this.turn){
+      var iter;
 
-      if (this.queueStart.length > 0) {
-        var cell = this.pickCell();
-
-        if (this.visitedArr[cell] == this.turn || GRID.cells[cell] == WALL) {
-          f--;
-          continue;
-        }
-        /*if(this.visitedArr[cell] == !this.turn){
-          this.drawPath(cell);
-          this.finished = true;
-          document.getElementById('runButton').innerHTML = "CLEAR";
-          return;
-        }*/
-
-        let cx = cell % GRID.width;
-        let cy = (cell - cx) / GRID.width;
-        if (!(cx == GRID.startCell.x && cy == GRID.startCell.y))
-          drawCell(cx, cy);
-
-        this.visitedArr[cell] = this.turn;
-
-        var cell_n = this.neighbours(cell);
-        if (cell_n != null) {
-          for (let i = 0; i < cell_n.length; i++) {
-
-            var cell_weight = this.cellWeight(cell_n[i]);
-
-            if (this.costArr[cell] + cell_weight < this.costArr[cell_n[i]]) {
-              this.costArr[cell_n[i]] = this.costArr[cell] + cell_weight;
-              this.previousArr[cell_n[i]] = cell;
-            }
-            this.queueStart.push(cell_n[i]);
-          }
-        }
+      if(this.turn && this.queueStart.length > 0){
+        iter = this.iteration(this.queueStart);
+      }else if(!this.turn && this.queueEnd.length > 0){
+        iter = this.iteration(this.queueEnd);
       }
-      else {
-        console.log(4);
-        this.finished = true;
-        document.getElementById('runButton').innerHTML = "CLEAR";
+
+      if(iter == true){
         continue;
+      }/*else if(iter == null){
+          f--;
+      }*/
+      else{
+        /*this.drawPath(cell);
+        this.finished = true;
+        document.getElementById('runButton').innerHTML = "CLEAR";*/
+        console.log(iter);
       }
-
-      }else{
-        if (this.queueEnd.length > 0) {
-          var cell = this.pickCell();
-  
-          if (this.visitedArr[cell] == this.turn || GRID.cells[cell] == WALL) {
-            f--;
-            continue;
-          }
-
-          /*if(this.visitedArr[cell] == !this.turn){
-            this.drawPath(cell);
-            this.finished = true;
-            document.getElementById('runButton').innerHTML = "CLEAR";
-            return;
-          }*/
-  
-          let cx = cell % GRID.width;
-          let cy = (cell - cx) / GRID.width;
-          if (!(cx == GRID.startCell.x && cy == GRID.startCell.y))
-            drawCell(cx, cy);
-  
-          this.visitedArr[cell] = this.turn;
-  
-          var cell_n = this.neighbours(cell);
-          if (cell_n != null) {
-            for (let i = 0; i < cell_n.length; i++) {
-  
-              var cell_weight = this.cellWeight(cell_n[i]);
-  
-              if (this.costArr[cell] + cell_weight < this.costArr[cell_n[i]]) {
-                this.costArr[cell_n[i]] = this.costArr[cell] + cell_weight;
-                this.previousArr[cell_n[i]] = cell;
-                console.log(this.turn, this.visitedArr[cell_n[i]]);
-              }
-              this.queueEnd.push(cell_n[i]);
-            }
-          }
-        }
-        else {
-          console.log(4);
-          this.finished = true;
-          document.getElementById('runButton').innerHTML = "CLEAR";
-          continue;
-        }
-      }
+      
 
       this.turn = !this.turn;
     }
