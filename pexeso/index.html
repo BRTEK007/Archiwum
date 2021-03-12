@@ -7,84 +7,10 @@
 
 <body align = "center" onload = "onload()">
 
-<div id = "title">PEXESO</div>
+<div id = "grid" class = ""></div>
 
-<div id = "choices_holder">
-
-	<div id = "choices_0" class = "">
-		<div class = "choice" onclick = "setSettings(0, 0)">
-			<div class = "choice_caption">SINGLEPLAYER</div>
-			<img class = "choice_img" src = "img/singleplayer.png"/>
-		</div>
-	
-		<div class = "choice" onclick = "openNames()">
-			<div class = "choice_caption">MULTIPLAYER</div>
-			<img class = "choice_img" src = "img/multiplayer.png"/>
-		</div>
-	
-		<div class = "choice" onclick = "openBot()">
-			<div class = "choice_caption">AGAINST BOT</div>
-			<img class = "choice_img" src = "img/bot.png"/>
-		</div>
-	</div>
-	
-	<div id = "choices_1" class = "inactive">
-		<div class = "choice" onclick = "setSettings(1, 0)">
-			<div class = "choice_caption">SMALL<br>6x4</div>
-			<img class = "choice_img" src = "img/small.png"/>
-		</div>
-	
-		<div class = "choice" onclick = "setSettings(1,1)">
-			<div class = "choice_caption">MEDIUM<br>6x6</div>
-			<img class = "choice_img" src = "img/medium.png"/>
-		</div>
-	
-		<div class = "choice" onclick = "setSettings(1, 2)">
-			<div class = "choice_caption">LARGE<br>10x6</div>
-			<img class = "choice_img" src = "img/large.png"/>
-		</div>
-	</div>
-	
-	<div id = "choices_2" class = "inactive">
-		<div class = "choice" onclick = "setSettings(2, 0)">
-			<div class = "choice_caption">ANIMALS</div>
-			<img class = "choice_img" src = "img/animals.png"/>
-		</div>
-	
-		<div class = "choice" onclick = "setSettings(2, 1)">
-			<div class = "choice_caption">FOOD</div>
-			<img class = "choice_img" src = "img/food.png"/>
-		</div>
-	
-		<div class = "choice" onclick = "setSettings(2, 2)">
-			<div class = "choice_caption">EMOJIS</div>
-			<img class = "choice_img" src = "img/emojis.png"/>
-		</div>
-	</div>
-	
-	<div id = "choices_names" class = "inactive" align = "center">
-		<input type="text" id="name_0" value = "PLAYER 1" class = "name_input" maxlength="10"><br>
-		<input type="text" id="name_1" value = "PLAYER 2" class = "name_input" maxlength="10">
-		<div id = "names_button" onclick = "setNames()">DONE</div>
-	</div>
-	
-	<div id = "choices_bot" class = "inactive">
-		<div class = "choice" onclick = "setBot(0)">
-			<div class = "choice_caption">DUMB</div>
-			<img class = "choice_img" src = "img/brain0.png"/>
-		</div>
-	
-		<div class = "choice" onclick = "setBot(1)">
-			<div class = "choice_caption">AVERAGE</div>
-			<img class = "choice_img" src = "img/brain1.png"/>
-		</div>
-	
-		<div class = "choice" onclick = "setBot(2)">
-			<div class = "choice_caption">GENIUS</div>
-			<img class = "choice_img" src = "img/brain2.png"/>
-		</div>
-	</div>
-
+<div id = "soloEnd" class = "inactive">
+	<div class = "end_caption">It took you <font color="gold" id = "soloEnd0">130</font> moves and to finish the pexeso.</div>
 </div>
 
 </body>
