@@ -1,3 +1,5 @@
+'use strict';
+
 var canvas, ctx;
 var painter;
 
@@ -286,19 +288,19 @@ function frame() {
 }
 
 function DijkstraSolve() {
-  this.neighbours = function (c) {
+  function neighbours(c) {
     var arr = [];
 
-    if (c >= GRID.width && !this.visitedArr[c - GRID.width] && GRID.cells[c - GRID.width] != WALL) {
+    if (c >= GRID.width && !visitedArr[c - GRID.width] && GRID.cells[c - GRID.width] != WALL) {
       arr.push(c - GRID.width);
     }
-    if (c < GRID.width * (GRID.height - 1) && !this.visitedArr[c + GRID.width] && GRID.cells[c + GRID.width] != WALL) {
+    if (c < GRID.width * (GRID.height - 1) && !visitedArr[c + GRID.width] && GRID.cells[c + GRID.width] != WALL) {
       arr.push(c + GRID.width);
     }
-    if (c % GRID.width != GRID.width - 1 && !this.visitedArr[c + 1] && GRID.cells[c + 1] != WALL) {
+    if (c % GRID.width != GRID.width - 1 && !visitedArr[c + 1] && GRID.cells[c + 1] != WALL) {
       arr.push(c + 1);
     }
-    if (c % GRID.width != 0 && !this.visitedArr[c - 1] && GRID.cells[c - 1] != WALL) {
+    if (c % GRID.width != 0 && !visitedArr[c - 1] && GRID.cells[c - 1] != WALL) {
       arr.push(c - 1);
     }
 
@@ -306,7 +308,7 @@ function DijkstraSolve() {
     else return null;
   }
 
-  this.heuristics = function (c1, c2) {
+  function heuristics(c1, c2) {
     if (SETTINGS.heuristics == 'NONE') return 1;
 
     let c1x = c1 % GRID.width;
@@ -322,7 +324,7 @@ function DijkstraSolve() {
     }
   }
 
-  this.cellWeight = function (c) {
+  function cellWeight(c) {
     if (SETTINGS.weighting == 'HOMOGENIC') return 1;
     if (SETTINGS.weighting == 'RANDOM') return Math.random();
 
@@ -342,79 +344,79 @@ function DijkstraSolve() {
     return 1;
   }
 
-  this.pickCell = function () {
+  function pickCell() {
     var cost = Infinity;
     var index = undefined;
 
     let endCell = GRID.id(GRID.endCell.x, GRID.endCell.y);
 
-    for (let i = 0; i < this.queue.length; i++) {
-      if (this.costArr[this.queue[i]] + this.heuristics(this.queue[i], endCell) < cost) {
-        cost = this.costArr[this.queue[i]] + this.heuristics(this.queue[i], endCell);
+    for (let i = 0; i < queue.length; i++) {
+      if (costArr[queue[i]] + heuristics(queue[i], endCell) < cost) {
+        cost = costArr[queue[i]] + heuristics(queue[i], endCell);
         index = i;
       }
     }
 
-    let cell = this.queue[index];
-    this.queue.splice(index, 1);
+    let cell = queue[index];
+    queue.splice(index, 1);
     return cell;
   }
 
-  this.addPathToSolution = function () {
-    this.solution.push(null);
+  function addPathToSolution() {
+    solution.push(null);
 
-    let cell = this.previousArr[GRID.id(GRID.endCell.x, GRID.endCell.y)];
-    while (this.previousArr[cell] != undefined) {
-      this.solution.push(cell);
-      cell = this.previousArr[cell];
+    let cell = previousArr[GRID.id(GRID.endCell.x, GRID.endCell.y)];
+    while (previousArr[cell] != undefined) {
+      solution.push(cell);
+      cell = previousArr[cell];
     }
   }
 
-  this.costArr = new Array(GRID.width * GRID.height).fill(Infinity);
-  this.previousArr = new Array(GRID.width * GRID.height).fill(undefined);
-  this.visitedArr = new Array(GRID.width * GRID.height).fill(false);
+  var costArr = new Array(GRID.width * GRID.height).fill(Infinity);
+  var previousArr = new Array(GRID.width * GRID.height).fill(undefined);
+  var visitedArr = new Array(GRID.width * GRID.height).fill(false);
 
   var startCell = GRID.id(GRID.startCell.x, GRID.startCell.y);
   var endCell = GRID.id(GRID.endCell.x, GRID.endCell.y);
 
-  this.costArr[startCell] = 0;
-  this.queue = [startCell];
+  costArr[startCell] = 0;
+  var queue = [startCell];
 
-  this.solution = new Array();
+  var solution = new Array();
 
-  this.solutionIndex = 0;
+  var solutionIndex = 0;
 
-  while (this.queue.length > 0) {
-    var cell = this.pickCell();
+  while (queue.length > 0) {
+    var cell = pickCell();
 
-    if (this.visitedArr[cell] == true || GRID.cells[cell] == WALL) continue;
+    if (visitedArr[cell] == true || GRID.cells[cell] == WALL) continue;
 
 
     if (cell != startCell && cell != endCell)
-      this.solution.push(cell);
+      solution.push(cell);
 
-    this.visitedArr[cell] = true;
+    visitedArr[cell] = true;
 
-    var cell_n = this.neighbours(cell);
+    var cell_n = neighbours(cell);
     if (cell_n != null) {
       for (let i = 0; i < cell_n.length; i++) {
 
-        var cell_weight = this.cellWeight(cell_n[i]);
+        var cell_weight = cellWeight(cell_n[i]);
 
-        if (this.costArr[cell] + cell_weight < this.costArr[cell_n[i]]) {
-          this.costArr[cell_n[i]] = this.costArr[cell] + cell_weight;
-          this.previousArr[cell_n[i]] = cell;
+        if (costArr[cell] + cell_weight < costArr[cell_n[i]]) {
+          costArr[cell_n[i]] = costArr[cell] + cell_weight;
+          previousArr[cell_n[i]] = cell;
           if (cell_n[i] == GRID.id(GRID.endCell.x, GRID.endCell.y)) {
-            this.addPathToSolution();
-            return this.solution;
+            addPathToSolution();
+            return solution;
           }
         }
-        this.queue.push(cell_n[i]);
+        queue.push(cell_n[i]);
       }
     }
   }
 
-  return this.solution;
+  return solution;
 
 }
 
@@ -452,7 +454,7 @@ function button_RUN() {
       let t0 = performance.now();
       let solution = DijkstraSolve();
       let t1 = performance.now();
-      console.log(t1 - t0 + ' ms');
+      console.log(Math.floor(t1 - t0) + ' ms');
       painter = new SolutionPainter(solution);
       button.innerHTML = 'PAUSE';
       document.getElementById('coverDiv').style.display = "block";
