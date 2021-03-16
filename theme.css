@@ -12,10 +12,12 @@ body{
 	height: 400px;
 	border: 1px solid white;
 	cursor: pointer;
+	transition-duration: 0.2s;
 }
 
 .entry:hover{
 	border: 1px solid gold;
+	transform: scale(1.05);
 }
 
 .entry img{
