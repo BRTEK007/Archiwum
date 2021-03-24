@@ -346,7 +346,6 @@ const Prim_solver = function () {
 
 }
 
-
 const Eller_solver = function () {
     this.sets;
     this.walls;
