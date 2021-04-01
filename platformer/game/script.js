@@ -1,3 +1,5 @@
+"use strict";
+
 function frame() {
   let timestamp = window.performance && window.performance.now ? window.performance.now() : new Date().getTime();
   deltaTime = (timestamp - oldTimeStamp) / 1000;
@@ -18,12 +20,12 @@ window.addEventListener('keydown', function (event) {
     case "ArrowRight": event.preventDefault(); if (keys[ARROW_RIGHT].isPressed) break; keys[ARROW_RIGHT].pressed = true; keys[ARROW_RIGHT].isPressed = true; break;
     case "ArrowLeft": event.preventDefault(); if (keys[ARROW_LEFT].isPressed) break; keys[ARROW_LEFT].pressed = true; keys[ARROW_LEFT].isPressed = true; break;
     case "ArrowUp": event.preventDefault(); if (keys[ARROW_UP].isPressed) break; keys[ARROW_UP].pressed = true; keys[ARROW_UP].isPressed = true; break;
-    case "r": 
-    event.preventDefault(); 
-    if (keys[R_KEY].isPressed) break; 
-    keys[R_KEY].pressed = true; 
+    case "r":
+    event.preventDefault();
+    if (keys[R_KEY].isPressed) break;
+    keys[R_KEY].pressed = true;
     keys[R_KEY].isPressed = true;
-    if(isWaitingForConfirm) confirmLevelStats(true); 
+    if(isWaitingForConfirm) confirmLevelStats(true);
     break;
     case "Enter": event.preventDefault(); if(isWaitingForConfirm) confirmLevelStats(false); break;
   }
@@ -105,7 +107,7 @@ function confirmLevelStats(replay){
     isWaitingForConfirm = true;
   }
 
-  
+
 }
 
 function loadLevelFromFile(n) {
@@ -152,7 +154,7 @@ function loadObjectsToGame(){
         game.enemies.push(EntityFactory.RocketEnemy(x * level.tileSize, y * level.tileSize, level.tiles[i].offset, level.tiles[i].direction));
         //level.tiles[i] = false;
         break;
-      case TILE_COIN :  
+      case TILE_COIN :
       game.coins.push(EntityFactory.Coin(x * level.tileSize, y * level.tileSize));
       game.coinsToCollect++;
       //level.tiles[i] = false;
@@ -167,7 +169,7 @@ function loadHtmlLevel() {
   if(level.frameLimit == null)
     level.frameLimit = 1000;
   levelNumber = Infinity;
-  game = new Game(Infinity);  
+  game = new Game(Infinity);
   loadObjectsToGame();
 }
 
@@ -307,7 +309,7 @@ const Game = function () {
 
     if(!this.finished && this.playerMoved)
       this.frameTime++;
-    
+
     frameWindow.innerHTML = /*level.frameLimit -*/ this.frameTime;
 
     this.screenDrawer.clear();
