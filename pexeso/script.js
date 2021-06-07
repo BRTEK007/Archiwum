@@ -1,27 +1,27 @@
-var bot_memory_sizes = [3, 5, 10];
+const BOT_MEMORY_SIZE = [3, 5, 10];
+const GRID_DIMENSIONS = [[6,4], [6,6], [10,6]];
 var game;
 
 function sleep(ms) {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function onload(){
-	var url_string = window.location.href; 
-	var url = new URL(url_string);
-	var b = 1;//size 6x4 6x6 8x6
-	
-	var sizes = [[6,4], [6,6], [10,6]];
-	
+
+	/*startGame(-1, 1);*/
+
+
+function startGame(_gameMode, _size){
 	var cards = Array();
 	
 	var grid = document.getElementById("grid");
-	for(var y = 0; y < sizes[b][1]; y++){
+	//grid.innerHTML = '';
+	for(var y = 0; y < GRID_DIMENSIONS[_size][1]; y++){
 		var row = document.createElement("div");
-		for(var x = 0; x < sizes[b][0]; x++){
+		for(var x = 0; x < GRID_DIMENSIONS[_size][0]; x++){
 			var card = document.createElement("div");
 			card.classList.add("card");
 			card.classList.add("hidden");
-			card.setAttribute("index", x + y*sizes[b][0]);
+			card.setAttribute("index", x + y*GRID_DIMENSIONS[_size][0]);
 			card.addEventListener("click", function(){clickedCard(this.getAttribute("index"));} );
 			cards.push(card);
 			row.appendChild(card);
@@ -29,30 +29,14 @@ function onload(){
 		grid.appendChild(row);
 	}
 	
-	var size = Math.floor(Math.min( window.innerWidth / sizes[b][0], window.innerHeight / sizes[b][1]) * 0.85);
+	var size = Math.floor(Math.min( window.innerWidth / GRID_DIMENSIONS[_size][0], window.innerHeight / GRID_DIMENSIONS[_size][1]) * 0.85);
 	grid.style.setProperty("--card_size", size + "px");
 	grid.style.setProperty("--card_margin", Math.floor(size/16) + "px");
 
-	var a = 0;//play mode
-	var c = 0;//style 0-animals 1-food 2-emojis
-
-	/*switch(a){
-		case 0: game = new SoloGame(cards); break;
-		case 2: game = new BotGame(cards, emojis[c], grid, bot_memory_sizes[parseInt(url.searchParams.get("f"))]); break;
-	}*/
-
-	fetch("https://api.pexels.com/v1/search?query=animals&per_page=18&size=small",{
-		headers: {
-		  Authorization: ""
-		}
-	  })
-		 .then(resp => {
-		   return resp.json()
-		 })
-		 .then(data => {
-		   //console.log(data.photos)
-		   game = new SoloGame(cards, data.photos);
-		 })
+	if(_gameMode == -1)
+		game = new SoloGame(cards);
+	else
+		game = new BotGame(cards, grid, BOT_MEMORY_SIZE[_gameMode]);
 }
 
 function clickedCard(id){
@@ -60,7 +44,7 @@ function clickedCard(id){
 }
 
 class SoloGame{
-	constructor(cards, photos){
+	constructor(cards){
 		this.cards = cards;
 		this.pairs = Array();
 		this.confirmed = true;
@@ -78,7 +62,6 @@ class SoloGame{
 			let r = Math.floor(Math.random() * copy.length);
 			this.pairs[i] = copy[r];
 			cards[i].innerHTML = "&#" + (128000 + this.pairs[i]) + ";";
-			//cards[i].style.backgroundImage = 'url(' + photos[this.pairs[i]].src.tiny +')';
 			copy.splice(r, 1);
 		}
 		
@@ -218,8 +201,8 @@ class Bot{
 }
 
 class BotGame extends SoloGame{
-	constructor(cards, style, grid, memory_size){
-		super(cards, style);
+	constructor(cards, grid, memory_size){
+		super(cards);
 		this.grid = grid;
 		this.is_player_playing = true;
 		this.bot = new Bot(cards.length, memory_size);
@@ -261,7 +244,7 @@ class BotGame extends SoloGame{
 		this.bot.get_to_know_card(this.revealedCard2, this.pairs[this.revealedCard2]);
 
 		this.is_player_playing = false;
-		this.grid.style.setProperty("--card_color", "green");
+		this.grid.style.setProperty("--card_color", "silver");
 		this.botMove();
 	}
 
