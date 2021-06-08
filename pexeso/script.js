@@ -26,7 +26,6 @@ function startButtonPressed(){
 	startGame(settings.gameMode, settings.gridSize);
 }
 
-
 function startGame(_gameMode, _size){
 	document.getElementById('menuDiv').style.display = 'none';
 	var grid = document.getElementById("grid");
