@@ -1,20 +1,38 @@
-const BOT_MEMORY_SIZE = [3, 5, 10];
+const BOT_MEMORY_SIZE = [3, 5, Infinity];
 const GRID_DIMENSIONS = [[6,4], [6,6], [10,6]];
+const settings = {
+	gameMode : -1,
+	gridSize: 1
+};
 var game;
 
-function sleep(ms) {
-	return new Promise(resolve => setTimeout(resolve, ms));
+function sleep(ms) {return new Promise(resolve => setTimeout(resolve, ms));}
+
+function changeGameMode(_m){settings.gameMode = _m};
+function changeGridSize(_s){settings.gridSize = _s};
+
+function selectButtonPressed(_button){
+	var buttons = _button.parentElement.children;
+	for(let i = 0; i < buttons.length; i++){
+		if(buttons[i].getAttribute('selected') == 'true'){
+			buttons[i].setAttribute('selected', false);
+			break;
+		}
+	}
+	_button.setAttribute('selected', true);
+}
+
+function startButtonPressed(){
+	startGame(settings.gameMode, settings.gridSize);
 }
 
 
-	/*startGame(-1, 1);*/
-
-
 function startGame(_gameMode, _size){
-	var cards = Array();
-	
+	document.getElementById('menuDiv').style.display = 'none';
 	var grid = document.getElementById("grid");
-	//grid.innerHTML = '';
+	grid.style.display = "block";
+
+	var cards = Array();
 	for(var y = 0; y < GRID_DIMENSIONS[_size][1]; y++){
 		var row = document.createElement("div");
 		for(var x = 0; x < GRID_DIMENSIONS[_size][0]; x++){
@@ -99,8 +117,8 @@ class SoloGame{
 		this.cards[id].classList.add("revealed");
 	}
 	gameEnd(){
-		document.getElementById("grid").classList.add("inactive");
-		document.getElementById("soloEnd").classList.remove("inactive");
+		document.getElementById("grid").style.display = "none";
+		document.getElementById("soloEnd").style.display = "inline-block";
 		document.getElementById("soloEnd0").innerHTML = this.moves;
 	}
 	correct_move(){
@@ -296,16 +314,13 @@ class BotGame extends SoloGame{
 	}
 
 	gameEnd(){
-		this.grid.classList.add("inactive");
-		document.getElementById("multEnd").classList.remove("inactive");
+		this.grid.style.display = 'none';
 
-		if(this.player_points > this.bot_points){
-			document.getElementById("multEnd0").innerHTML = "You";
-			document.getElementById("multEnd1").innerHTML = "Bot";
-		}else{
-			document.getElementById("multEnd0").innerHTML = "Bot";
-			document.getElementById("multEnd1").innerHTML = "You";
-		}
+		if(this.player_points > this.bot_points)
+			document.getElementById("botEnd0").style.display = 'inline-block';
+		else
+			document.getElementById("botEnd1").style.display = 'inline-block';
+		
 	}
 
 }

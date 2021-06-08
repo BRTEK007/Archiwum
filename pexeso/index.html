@@ -11,25 +11,33 @@
 	<div id = "titleDiv">PEXESO</div>
 	
 	<div id = "gameModeDiv">
-		<div class = "selectDiv" selected = "true">SOLO</div>
-		<div class = "selectDiv" selected = "false">BOT (DUMB)</div>
-		<div class = "selectDiv" selected = "false">BOT (AVERAGE)</div>
-		<div class = "selectDiv" selected = "false">BOT (SMART)</div>
+		<div class = "selectDiv" selected = "true" onclick = "selectButtonPressed(this), changeGameMode(-1)">SOLO</div>
+		<div class = "selectDiv" selected = "false" onclick = "selectButtonPressed(this), changeGameMode(0)">BOT (DUMB)</div>
+		<div class = "selectDiv" selected = "false" onclick = "selectButtonPressed(this), changeGameMode(1)">BOT (AVERAGE)</div>
+		<div class = "selectDiv" selected = "false" onclick = "selectButtonPressed(this), changeGameMode(2)">BOT (SMART)</div>
 	</div>
 
 	<div id = "gridSizeDiv">
-		<div class = "selectDiv" selected = "false">SMALL</div>
-		<div class = "selectDiv" selected = "true">MEDIUM</div>
-		<div class = "selectDiv" selected = "false">LARGE</div>
+		<div class = "selectDiv" selected = "false" onclick = "selectButtonPressed(this), changeGridSize(0)">SMALL</div>
+		<div class = "selectDiv" selected = "true" onclick = "selectButtonPressed(this), changeGridSize(1)">MEDIUM</div>
+		<div class = "selectDiv" selected = "false" onclick = "selectButtonPressed(this), changeGridSize(2)">LARGE</div>
 	</div>
 
-	<div id = "startButtonDiv" >START</div>
+	<div id = "startButtonDiv" onclick = "startButtonPressed()">START</div>
 </div>
 
 <div id = "grid" style = "display: none;"></div>
 
-<div id = "soloEnd" class = "inactive">
+<div id = "soloEnd" style = "display: none;">
 	<div class = "end_caption">It took you <font color="gold" id = "soloEnd0">130</font> moves and to finish the pexeso.</div>
+</div>
+
+<div id = "botEnd0" style = "display: none;">
+	<div class = "end_caption">You won.</div>
+</div>
+
+<div id = "botEnd1" style = "display: none;">
+	<div class = "end_caption">You lost.</div>
 </div>
 
 </body>
