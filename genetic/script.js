@@ -5,13 +5,13 @@ var painter;
 
 const GRID = {
   cells: [],//false = empty, true = wall
-  cell_size: 30,
+  cell_size: 100,
   width: 20,
   height: 25,
   offset_x: 10,
   offset_y: 10,
   startCell: { x: 0, y: 0 },
-  endCell: { x: 10, y: 2 },
+  endCell: { x: 2, y: 0 },
   id: (x, y) => x + y * GRID.width
 }
 
@@ -40,15 +40,19 @@ function pageLoaded() {
   updateGridDimensions();
   drawGrid();
 
+  drawCell(GRID.startCell.x, GRID.startCell.y);
+  drawCell(GRID.endCell.x, GRID.endCell.y);
+
   window.requestAnimationFrame(frame);
 }
 
 function updateGridDimensions() {
-  GRID.cell_size = 100;
-  GRID.width = Math.floor((canvas.width - 1) / (GRID.cell_size + 1));
-  GRID.height = Math.floor((canvas.height - 1) / (GRID.cell_size + 1));
+  GRID.width = Math.floor((canvas.width - GRID.cell_size*0.5) / (GRID.cell_size + 1));
+  GRID.height = Math.floor((canvas.height - GRID.cell_size*0.5) / (GRID.cell_size + 1));
   GRID.offset_x = Math.floor((canvas.width - (GRID.cell_size + 1) * GRID.width) / 2);
   GRID.offset_y = Math.floor((canvas.height - (GRID.cell_size + 1) * GRID.height) / 2);
+  GRID.startCell = { x: Math.round(GRID.width * 0.3333), y: Math.round(GRID.height / 2) };
+  GRID.endCell = { x: Math.round(GRID.width * 0.6666), y: Math.round(GRID.height / 2) };
   GRID.cells = new Array(GRID.width * GRID.height).fill(0);
 }
 
@@ -68,6 +72,17 @@ function drawGrid() {
     ctx.stroke();
   }
 }
+
+function drawCell(cx, cy) {
+  let x = GRID.offset_x + cx * (GRID.cell_size + 1) + 1;
+  let y = GRID.offset_y + cy * (GRID.cell_size + 1)+ 1;
+  let w = GRID.cell_size -1;
+  let h = GRID.cell_size -1;
+  ctx.fillStyle = "white";
+  ctx.fillRect(x, y, w, h);
+}
+
+
 
 function frame() {
   window.requestAnimationFrame(frame);
