@@ -51,6 +51,7 @@ class Block{
     return true;
   }
   getCoverRate(_ax, _ay){
+    if(this.next == null) return 0;
     //check for next block orientaion
     let lx = this.gridPos.x * (GRID.cell_size+1) + GRID.offset_x;
     let rx = (this.gridPos.x+1) * (GRID.cell_size+1) + GRID.offset_x;
@@ -66,11 +67,14 @@ class Block{
 class Population{
   constructor(_startBlock){
     this.startBlock = _startBlock;
-    this.populationSize = 10;
+    this.startPos = {x: (_startBlock.gridPos.x+0.5) * (GRID.cell_size+1) + GRID.offset_x, y: (_startBlock.gridPos.y+0.5) * (GRID.cell_size+1) +  + GRID.offset_y};
+    this.populationSize = 20;
     this.iteration = 0;
+    this.mutationRate = 0.05;
     this.agents = new Array(this.populationSize);
     for(let i = 0; i < this.populationSize; i++){
-      this.agents[i] = new Agent(_startBlock, (_startBlock.gridPos.x+0.5) * (GRID.cell_size+1) + GRID.offset_x, (_startBlock.gridPos.y+0.5) * (GRID.cell_size+1) +  + GRID.offset_y);
+      this.agents[i] = new Agent(this.startBlock, this.startPos.x, this.startPos.y);
+      this.agents[i].generateRandomGenes();
     }
   }
   update(){
@@ -101,15 +105,28 @@ class Population{
     //var indexPoll = new Array(this.populationSize*(this.populationSize+1)/2);
     var indexPoll = [];
     for(let i = 0; i < this.populationSize; i++){
-      for(let j = i; j < this.populationSize; j++){
+      for(let j = i*i; j < this.populationSize*this.populationSize; j++){
         indexPoll.push(i);
       }
     }
+    this.agents[0] = new Agent(this.startBlock, this.startPos.x, this.startPos.y);
+    this.agents[0].genes = sortedAgents[0].genes;
+    for(let i = 1; i < this.populationSize; i++){
+      var p1 = sortedAgents[ indexPoll[ Math.floor(Math.random() * indexPoll.length)] ];
+      var p2 = sortedAgents[ indexPoll[ Math.floor(Math.random() * indexPoll.length)] ];
+      while(p2 == p1){
+        p2 = sortedAgents[ indexPoll[ Math.floor(Math.random() * indexPoll.length)] ];
+      }
+      var a = this.getChildAgent(p1, p2);
+      this.agents[i] = a;
+    }
+
   }
 
   resetPopulation(){
     for(let i = 0; i < this.populationSize; i++){
-      this.agents[i] = new Agent(this.startBlock, (this.startBlock.gridPos.x+0.5) * (GRID.cell_size+1) + GRID.offset_x, (this.startBlock.gridPos.y+0.5) * (GRID.cell_size+1) +  + GRID.offset_y);
+      this.agents[i] = new Agent(this.startBlock, this.startPos.x, this.startPos.y);
+      this.agents[i].generateRandomGenes();
     }
   }
 
@@ -120,6 +137,20 @@ class Population{
       ctx.arc(this.agents[i].pos.x, this.agents[i].pos.y, 10, 0, 2 * Math.PI);
       ctx.fill();
     }
+  }
+
+  getChildAgent(_a1, _a2){
+    var child = new Agent(this.startBlock, this.startPos.x, this.startPos.y);
+    for(let i = 0; i < child.genes.length; i++){
+      let r = Math.random();
+      if(r < this.mutationRate)
+        child.genes[i] = {x : Math.random()*2 -1, y : Math.random()*2 -1};
+      else if(r < this.mutationRate + (1-this.mutationRate)*2)
+        child.genes[i] = _a1.genes[i];
+      else
+        child.genes[i] = _a2.genes[i];
+    }
+    return child;
   }
 
 }
@@ -133,14 +164,6 @@ class Agent{
     this.furthestBlockCoverRate = 0;
     this.finished = false;
     this.genes = new Array(100);
-
-    for(let i = 0; i < 100; i++){
-      this.genes[i] = {
-        x : Math.random()*2 -1,
-        y : Math.random()*2 -1
-      };
-    }
-
   }
   update(_iteration){
     if(_iteration >= 100){ 
@@ -170,6 +193,14 @@ class Agent{
     this.pos.x += this.vel.x;
     this.pos.y += this.vel.y;
     //console.log(this.genes);
+  }
+  generateRandomGenes(){
+    for(let i = 0; i < 100; i++){
+      this.genes[i] = {
+        x : Math.random()*2 -1,
+        y : Math.random()*2 -1
+      };
+    }
   }
 }
 
