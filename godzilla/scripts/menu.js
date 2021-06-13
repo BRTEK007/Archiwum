@@ -36,7 +36,8 @@ function confirm(){
     console.log(pos);
     switch(pos){
         case 0:
-            window.open("game.html");
+            //window.open("game.html");
+            window.location.href = 'game.html';
         break;
         case 1:
             s = ""

@@ -29,7 +29,7 @@ function buttonsSelected(){
     if(menuLayer == 0){
         switch(selected){
            case 0: changeMenuLayer(1); break;
-           case 1: window.open('editor/index.html'); break;
+           case 1: window.location.href = 'editor/index.html'; break;
            case 2: alert("arrows to move, R to restart"); break;
         }
     }else if(menuLayer == 1){
@@ -38,7 +38,9 @@ function buttonsSelected(){
         }
         else{
             var url = 'game/index.html?x=' + (selected+1);
-            window.open(url);
+            //window.open(url);
+            //window.location.replace(url);
+            window.location.href = url;
         }
     }
 }

@@ -2,7 +2,6 @@ canvas{
 	border: 1px solid white;
 	width: 85vw;
 	height: 85vh;
-	image-rendering: pixelated;
 	display: block;
 }
 
@@ -16,6 +15,10 @@ body{
 	font-family: Consolas;
 	background-color: #111;
 	user-select: none;
+	image-rendering: -moz-crisp-edges;
+  	image-rendering: -webkit-crisp-edges;
+	image-rendering: pixelated;
+	image-rendering: crisp-edges;
 }
 
 label{

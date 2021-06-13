@@ -1,3 +1,10 @@
+body{
+	margin: 0;
+	image-rendering: -moz-crisp-edges;
+  	image-rendering: -webkit-crisp-edges;
+	image-rendering: pixelated;
+	image-rendering: crisp-edges;
+}
 :root{
 	--node_size: 45px;
 }
@@ -7,7 +14,6 @@
 	margin-top:-4px;
 	display: inline-block;
 	background-size: cover;
-	image-rendering: pixelated;
 	background-image: url('img/nodes.gif');
 	background-repeat: no-repeat;
 	cursor: default;
@@ -66,7 +72,6 @@ body{
 	cursor: pointer;
 	border: 0;
 	background-size: cover;
-	image-rendering: pixelated;
 	background-image: url('img/smiles.gif');
 	background-repeat: no-repeat;
 	padding: 0;
@@ -90,7 +95,6 @@ body{
 	height: 46px;
 	margin: 10px -2px;
 	background-size: cover;
-	image-rendering: pixelated;
 	background-image: url('img/time.gif');
 	background-repeat: no-repeat;
 }
@@ -133,27 +137,20 @@ body{
 .border_horizontal{
 	background-image: url("img/border_horizontal.gif");
 	background-size: 100% 100%;
-	image-rendering: pixelated;
-	image-rendering: crisp-edges;
 	/*margin-top :0px;
 	margin-bottom: -16px;*/
 }
 .border_vertical{
 	background-image: url("img/border_vertical.gif");
 	background-size: 100% 100%;
-	image-rendering: pixelated;
-	image-rendering: crisp-edges;
 }
 .border_vertical_small{
 	background-image: url("img/border_vertical.gif");
 	background-size: 100% 100%;
-	image-rendering: pixelated;
-	image-rendering: crisp-edges;
 	height: 74px;
 }
 .corner{
 	background-size: cover;
-	image-rendering: pixelated;
 	background-image: url('img/borders.gif');
 	background-repeat: no-repeat;
 }

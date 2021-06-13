@@ -11,12 +11,14 @@
 	width: 300px;
 	height: 100%;
 	color: gold;
+	margin-left: calc(50% - 150px);
 }
 
 #menuDiv #titleDiv{
 	font-size: 30px;
 	font-weight: 500;
 	padding: 5px;
+	text-align: center;
 }
 
 #menuDiv #gameModeDiv{
@@ -28,6 +30,7 @@
 }
 
 #menuDiv #startButtonDiv{
+	text-align: center;
 	margin-top: 60px;
 	border: 2px solid gold;
 	width: 150px;
@@ -47,6 +50,7 @@
 	margin: 10px;
 	margin-left: 70px;
 	padding: 10px;
+	text-align: center;
 }
 
 .selectDiv[selected = "true"]{
@@ -114,6 +118,6 @@ body{
 }
 
 #grid{
-	height:100%;
+	margin: auto;
 }
 

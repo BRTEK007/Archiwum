@@ -16,7 +16,10 @@ canvas{
     top: calc((100% - 960px) / 2);
     height: 960px;
     width: 1728px;
-    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+  	image-rendering: -webkit-crisp-edges;
+	image-rendering: pixelated;
+	image-rendering: crisp-edges;
     display: inline-block;
     /*border: 1px solid red;*/
 }
