@@ -11,7 +11,7 @@
 	width: 300px;
 	height: 100%;
 	color: gold;
-	margin-left: calc(50% - 150px);
+	
 }
 
 #menuDiv #titleDiv{
@@ -76,6 +76,7 @@ body{
 	margin: 0;
 	padding: 0;
 	height: 100%;
+	text-align: center;
 }
 
 .card{
@@ -118,6 +119,6 @@ body{
 }
 
 #grid{
-	margin: auto;
+	text-align: center;
 }
 

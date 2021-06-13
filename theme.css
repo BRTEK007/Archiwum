@@ -3,6 +3,7 @@ body{
 	font-family: Helvetica;
 	user-select: none;
 	overflow-x: hidden;
+	text-align: center;
 }
 
 .entry{
