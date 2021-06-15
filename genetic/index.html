@@ -9,6 +9,29 @@
 
 <body onload="pageLoaded()">
     <canvas id="canvas1" oncontextmenu="return false;"></canvas>
+    <div id="menuDiv" onmousedown="mouseDownOnDiv(this)">
+        <div>generation: 0</div>
+        <div>reached goal: 0</div>
+        <div>mutation rate(%): </div>
+        <input id = "input_MR" type="number" value = "5" min = "0" max = "100">
+        <div>population size: </div>
+        <input id = "input_PS" type="number" value = "50" min = "1" max = "200">
+        <div>natural selection: </div>
+        <select id="input_NS">
+            <option value="volvo">by fitness(linear)</option>
+            <option value="volvo">by fitness(quadratic)</option>
+            <option value="volvo">by order(linear)</option>
+            <option value="volvo">by order(quadratic)</option>
+          </select>
+        <div>evolution method: </div>
+        <select id="input_EM">
+            <option value="volvo">2 parents</option>
+            <option value="saab">cloning selection</option>
+            <option value="fiat">cloning best</option>
+          </select>
+        <button>EDIT COURSE</button>
+        <button>RESET</button>
+    </div>
 </body>
 
 </html>

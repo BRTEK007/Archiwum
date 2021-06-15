@@ -100,7 +100,6 @@ class Course{
     this.blocks.push(b);*/
 
     this.blocks[0].index = 0;
-    this.blocks[0].color = "green";
     this.blocks[0].next = this.blocks[1];
     this.blocks[0].setWalls();
 
@@ -112,15 +111,51 @@ class Course{
     }
 
     this.blocks[this.blocks.length-1].index = this.blocks.length-1;
-    this.blocks[this.blocks.length-1].color = "red";
     this.blocks[this.blocks.length-1].prev = this.blocks[this.blocks.length-2];
     this.blocks[this.blocks.length-1].setWalls();
 
   }
   render(){
+    ctx.fillStyle = "white";
     for(let i = 0; i < this.blocks.length; i++){
-      this.blocks[i].render();
+      let x = GRID.offset_x + this.blocks[i].gridPos.x * (GRID.cell_size + 1) +1;
+      let y = GRID.offset_y + this.blocks[i].gridPos.y * (GRID.cell_size + 1) +1; 
+      //filling
+      ctx.beginPath();
+      ctx.rect(x, y, GRID.cell_size -1, GRID.cell_size -1);
+      ctx.fill();
+      //walls
+      ctx.lineWidth = (GRID.cell_size -1)*0.05;
+      ctx.strokeStyle = 'yellow';
+      ctx.beginPath();
+      for(let j = 0; j < this.blocks[i].walls.length; j++){
+        ctx.moveTo(GRID.offset_x + this.blocks[i].walls[j].x1 * (GRID.cell_size + 1) + 1, GRID.offset_y + this.blocks[i].walls[j].y1 * (GRID.cell_size + 1)+ 1);
+        ctx.lineTo(GRID.offset_x + this.blocks[i].walls[j].x2 * (GRID.cell_size + 1) + 1, GRID.offset_y + this.blocks[i].walls[j].y2 * (GRID.cell_size + 1)+ 1);
+      }
+      ctx.stroke();
     }
+    //draw spawn point
+    let x = GRID.offset_x + (this.blocks[0].gridPos.x+0.5) * (GRID.cell_size + 1) +1;
+    let y = GRID.offset_y + (this.blocks[0].gridPos.y+0.5) * (GRID.cell_size + 1) +1; 
+    ctx.strokeStyle = 'blue';
+    ctx.beginPath();
+    ctx.arc(x, y, GRID.cell_size*0.1, 0, 2 * Math.PI);
+    ctx.stroke();
+    //draw target
+    x = GRID.offset_x + (this.blocks[this.blocks.length-1].gridPos.x+0.5) * (GRID.cell_size + 1) +1;
+    y = GRID.offset_y + (this.blocks[this.blocks.length-1].gridPos.y+0.5) * (GRID.cell_size + 1) +1; 
+    ctx.fillStyle = 'red';
+    ctx.beginPath();
+    ctx.arc(x, y, GRID.cell_size*0.21, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.arc(x, y, GRID.cell_size*0.14, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.fillStyle = 'red';
+    ctx.beginPath();
+    ctx.arc(x, y, GRID.cell_size*0.07, 0, 2 * Math.PI);
+    ctx.fill();
   }
 }
 
@@ -131,36 +166,9 @@ class Block{
     this.nextBlockOrientation = null;
     this.prev = null;
     this.index = null;
-    this.color = "white";
     this.walls = [];
   }
-  render(){
-    let x = GRID.offset_x + this.gridPos.x * (GRID.cell_size + 1) +1;
-    let y = GRID.offset_y + this.gridPos.y * (GRID.cell_size + 1) +1; 
-    let w = GRID.cell_size -1;
-    let h = GRID.cell_size -1;
 
-    ctx.fillStyle = this.color;
-    ctx.beginPath();
-    ctx.rect(x, y, w, h);
-    ctx.fill();
-
-    ctx.lineWidth = h*0.05;
-    ctx.strokeStyle = 'yellow';
-    ctx.beginPath();
-    for(let i = 0; i < this.walls.length; i++){
-      ctx.moveTo(GRID.offset_x + this.walls[i].x1 * (GRID.cell_size + 1) + 1, GRID.offset_y + this.walls[i].y1 * (GRID.cell_size + 1)+ 1);
-      ctx.lineTo(GRID.offset_x + this.walls[i].x2 * (GRID.cell_size + 1) + 1, GRID.offset_y + this.walls[i].y2 * (GRID.cell_size + 1)+ 1);
-    }
-    ctx.stroke();
-
-    if(this.next == null){
-      ctx.fillStyle = 'yellow';
-      ctx.beginPath();
-      ctx.arc(x + w/2, y + h/2, GRID.cell_size*0.2, 0, 2 * Math.PI);
-      ctx.fill();
-    }
-  }
   isOnBlock(_ax, _ay){
     let lx = this.gridPos.x * (GRID.cell_size+1) + GRID.offset_x;
     if(_ax <= lx) return false;
@@ -241,7 +249,7 @@ class Block{
     let cx = GRID.offset_x + (this.gridPos.x+0.5) * (GRID.cell_size + 1) +1;
     let cy = GRID.offset_y + (this.gridPos.y+0.5) * (GRID.cell_size + 1) +1;
     
-    return (Math.sqrt(Math.pow(cx - _ax, 2) + Math.pow(cy - _ay, 2)) <= GRID.cell_size*0.2);
+    return (Math.sqrt(Math.pow(cx - _ax, 2) + Math.pow(cy - _ay, 2)) <= GRID.cell_size*0.21);
   }
 }
 
@@ -255,6 +263,7 @@ class Population{
     this.cutOffRate = 0.0;
     this.genesSize = _course.blocks.length*30;
     this.agents = new Array(this.populationSize);
+    this.generation = 1;
     for(let i = 0; i < this.populationSize; i++){
       this.agents[i] = new Agent(this.startBlock, this.startPos.x, this.startPos.y, this.genesSize);
       this.agents[i].generateRandomGenes();
@@ -271,6 +280,7 @@ class Population{
     this.iteration++;
     if(this.iteration == this.genesSize || this.finishedAgents == this.populationSize){
       this.evolvePopulation();
+      this.generation++;
       this.iteration = 0;
     }
   }
@@ -352,12 +362,12 @@ class Population{
     ctx.fillStyle = "blue";
     for(let i = 1; i < this.agents.length; i++){
       ctx.beginPath();
-      ctx.arc(this.agents[i].pos.x, this.agents[i].pos.y, 10, 0, 2 * Math.PI);
+      ctx.arc(this.agents[i].pos.x, this.agents[i].pos.y, GRID.cell_size*0.1, 0, 2 * Math.PI);
       ctx.fill();
     }
     ctx.fillStyle = "magenta";
     ctx.beginPath();
-    ctx.arc(this.agents[0].pos.x, this.agents[0].pos.y, 15, 0, 2 * Math.PI);
+    ctx.arc(this.agents[0].pos.x, this.agents[0].pos.y, GRID.cell_size*0.1, 0, 2 * Math.PI);
     ctx.fill();
   }
 
@@ -454,6 +464,8 @@ class Agent{
 }
 
 function pageLoaded() {
+  dragElement(document.getElementById("menuDiv"));
+
   canvas = document.getElementById('canvas1');
 
   canvas.addEventListener('mousedown', e => {
@@ -519,4 +531,40 @@ function frame() {
   population.render();
   
   //drawGrid();
+}
+
+function dragElement(elmnt) {
+  var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+  elmnt.onmousedown = dragMouseDown;
+  
+
+  function dragMouseDown(e) {
+      e = e || window.event;
+      //e.preventDefault();
+      // get the mouse cursor position at startup:
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      document.onmouseup = closeDragElement;
+      // call a function whenever the cursor moves:
+      document.onmousemove = elementDrag;
+  }
+
+  function elementDrag(e) {
+      e = e || window.event;
+      //e.preventDefault();
+      // calculate the new cursor position:
+      pos1 = pos3 - e.clientX;
+      pos2 = pos4 - e.clientY;
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      // set the element's new position:
+      elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+      elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+  }
+
+  function closeDragElement() {
+      // stop moving when mouse button is released:
+      document.onmouseup = null;
+      document.onmousemove = null;
+  }
 }
