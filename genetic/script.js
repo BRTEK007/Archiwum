@@ -1,103 +1,41 @@
 'use strict';
 
-var canvas, ctx;
-var painter;
+var canvas, ctx, GEN_SPAN, SR_SPAN;
 
 var course;
 var population;
 
 const GRID = {
-  cell_size: 120,
-  width: 20,
-  height: 25,
-  offset_x: 10,
+  cell_size: null,
+  width: 8,
+  height: 5,
+  offset_x: 0,
   offset_y: 10,
   id: (x, y) => x + y * GRID.width
+};
+
+const SETTINGS = {
+  keepBest: true,
+  edditingMode: false
+};
+
+const EDIT = {
+  grid: null,
+  course : null
 }
 
-function renderHorizontalBlock(_gx, _gy){
-  let x = GRID.offset_x + _gx * (GRID.cell_size + 1) + 1;
-  let y = GRID.offset_y + _gy * (GRID.cell_size + 1)+ 1;
-  let w = GRID.cell_size -1;
-  let h = GRID.cell_size -1;
 
-  ctx.fillStyle = "white";
-  ctx.beginPath();
-  ctx.rect(x, y, w, h);
-  ctx.fill();
-
-  ctx.lineWidth = h*0.05;
-  ctx.strokeStyle = 'yellow';
-  ctx.beginPath();
-  ctx.moveTo(x, y);
-  ctx.lineTo(x + w, y);
-  ctx.moveTo(x, y + h);
-  ctx.lineTo(x + w, y + h);
-  ctx.stroke();
-}
-
-function renderLeftSideRoundedBlock(_gx, _gy){
-  let x = GRID.offset_x + (_gx+0.5) * (GRID.cell_size + 1) + 1;
-  let y = GRID.offset_y + _gy* (GRID.cell_size + 1)+ 1;
-  let w = GRID.cell_size/2 -1;
-  let h = GRID.cell_size -1;
-
-
-  ctx.fillStyle = "green";
-  ctx.rect(x, y, w, h);
-  ctx.fill();
-
-  ctx.lineWidth = h*0.05;
-  ctx.strokeStyle = 'yellow';
-  ctx.beginPath();
-  ctx.arc(x+1, y + GRID.cell_size/2, GRID.cell_size/2, 0.5* Math.PI,  1.5 * Math.PI);
-  ctx.fill();
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.moveTo(x, y);
-  ctx.lineTo(x + w, y);
-  ctx.moveTo(x, y + h);
-  ctx.lineTo(x + w, y + h);
-  ctx.stroke();
-
-}
-
-function renderRightSideRoundedBlock(_gx, _gy){
-
-}
 
 class Course{
-  constructor(){
+  constructor(_fill){
     this.blocks = [];
 
+    if(!_fill) return;
 
-    let b = new Block(0,0);
-    this.blocks.push(b);
-    b = new Block(1, 0);
-    this.blocks.push(b);
-    b = new Block(2, 0);
-    this.blocks.push(b);
-    b = new Block(3, 0);
-    this.blocks.push(b);
-    b = new Block(3, 1);
-    this.blocks.push(b);
-    b = new Block(3, 2);
-    this.blocks.push(b);
-    b = new Block(3, 3);
-    this.blocks.push(b);
-    /*b = new Block(2, 1);
-    this.blocks.push(b);
-    b = new Block(1, 1);
-    this.blocks.push(b);
-    b = new Block(0, 1);
-    this.blocks.push(b);
-    b = new Block(0, 2);
-    this.blocks.push(b);
-    b = new Block(1, 2);
-    this.blocks.push(b);
-    b = new Block(2, 2);
-    this.blocks.push(b);*/
+    for(let y = 0; y < GRID.height; y++){
+      let b = new Block(0,y);
+      this.blocks.push(b);
+    }
 
     this.blocks[0].index = 0;
     this.blocks[0].next = this.blocks[1];
@@ -115,8 +53,22 @@ class Course{
     this.blocks[this.blocks.length-1].setWalls();
 
   }
+  addBlock(_x, _y){
+    let b = new Block(_x,_y);
+    b.index = this.blocks.length;
+    if(this.blocks.length > 0){
+       b.prev = this.blocks[this.blocks.length-1];
+       this.blocks[this.blocks.length-1].next = b;
+       this.blocks[this.blocks.length-1].setWalls();
+    }
+    b.setWalls();
+    this.blocks.push(b);
+  }
+  getLastBlockId(){
+    return this.blocks[this.blocks.length-1].gridPos.x + this.blocks[this.blocks.length-1].gridPos.y * GRID.width;
+  }
   render(){
-    ctx.fillStyle = "white";
+    ctx.fillStyle = "gray";
     for(let i = 0; i < this.blocks.length; i++){
       let x = GRID.offset_x + this.blocks[i].gridPos.x * (GRID.cell_size + 1) +1;
       let y = GRID.offset_y + this.blocks[i].gridPos.y * (GRID.cell_size + 1) +1; 
@@ -135,13 +87,15 @@ class Course{
       ctx.stroke();
     }
     //draw spawn point
+    if(this.blocks.length < 1) return;
     let x = GRID.offset_x + (this.blocks[0].gridPos.x+0.5) * (GRID.cell_size + 1) +1;
     let y = GRID.offset_y + (this.blocks[0].gridPos.y+0.5) * (GRID.cell_size + 1) +1; 
     ctx.strokeStyle = 'blue';
     ctx.beginPath();
     ctx.arc(x, y, GRID.cell_size*0.1, 0, 2 * Math.PI);
     ctx.stroke();
-    //draw target
+    //draw target\
+    if(this.blocks.length < 2) return;
     x = GRID.offset_x + (this.blocks[this.blocks.length-1].gridPos.x+0.5) * (GRID.cell_size + 1) +1;
     y = GRID.offset_y + (this.blocks[this.blocks.length-1].gridPos.y+0.5) * (GRID.cell_size + 1) +1; 
     ctx.fillStyle = 'red';
@@ -168,7 +122,6 @@ class Block{
     this.index = null;
     this.walls = [];
   }
-
   isOnBlock(_ax, _ay){
     let lx = this.gridPos.x * (GRID.cell_size+1) + GRID.offset_x;
     if(_ax <= lx) return false;
@@ -237,7 +190,7 @@ class Block{
       }
 
     }
-
+    this.walls = [];  
     if(isWall[0] == true) this.walls.push({x1: this.gridPos.x, y1: this.gridPos.y, x2: this.gridPos.x, y2: this.gridPos.y+1});
     if(isWall[1] == true) this.walls.push({x1: this.gridPos.x, y1: this.gridPos.y, x2: this.gridPos.x+1, y2: this.gridPos.y}); 
     if(isWall[2] == true) this.walls.push({x1: this.gridPos.x+1, y1: this.gridPos.y, x2: this.gridPos.x+1, y2: this.gridPos.y+1}); 
@@ -258,6 +211,7 @@ class Population{
     this.startBlock = _course.blocks[0];
     this.startPos = {x: (this.startBlock.gridPos.x+0.5) * (GRID.cell_size+1) + GRID.offset_x, y: (this.startBlock.gridPos.y+0.5) * (GRID.cell_size+1) +  + GRID.offset_y};
     this.populationSize = 50;
+    this.desiredPopulationSize = null;
     this.iteration = 0;
     this.mutationRate = 0.05;
     this.cutOffRate = 0.0;
@@ -270,18 +224,29 @@ class Population{
     }
   }
   update(){
-    this.finishedAgents = 0;
+    var finishedAgents = 0;
+    var succesfulAgents = 0;
     for(let i = 0; i < this.populationSize; i++){
       if(!this.agents[i].finished)
         this.agents[i].update(this.iteration);
-      else
-        this.finishedAgents++; 
+      else{
+        finishedAgents++;
+        if(this.agents[i].hasReachedGoal) succesfulAgents++;
+      } 
     }
     this.iteration++;
-    if(this.iteration == this.genesSize || this.finishedAgents == this.populationSize){
+    if(this.iteration == this.genesSize || finishedAgents == this.populationSize){
       this.evolvePopulation();
+      DOM_updateGenerationStats(this.generation, 100*succesfulAgents/this.populationSize);
       this.generation++;
       this.iteration = 0;
+    }
+  }
+
+  skipGenerations(_g){
+    var targetGen = this.generation + _g;
+    while(this.generation < targetGen){
+      this.update();
     }
   }
 
@@ -298,29 +263,44 @@ class Population{
       if(this.agents[i].fitness > bestAgent.fitness) bestAgent = this.agents[i];
     }
     var newAgents = new Array(this.populationSize);
-    newAgents[0] = new Agent(this.startBlock, this.startPos.x, this.startPos.y);
-    newAgents[0].genes = [...bestAgent.genes];
 
-    for(let i = 1; i < this.populationSize; i++){
+    for(let i = 0; i < this.populationSize; i++){
       let rSum = Math.random() * fitnessSum;
       let a = this.getAgentByFitnessSum(rSum);  
       newAgents[i] = new Agent(this.startBlock, this.startPos.x, this.startPos.y);//overrites fitness
       newAgents[i].genes = [...a.genes];
       newAgents[i].mutateGenes(this.mutationRate); 
     }
+
+    if(SETTINGS.keepBest) newAgents[0].genes = [...bestAgent.genes];
+
     this.agents = newAgents;
+
+    //resize population if needed
+    if(this.desiredPopulationSize!=null){
+      if(this.desiredPopulationSize > this.populationSize){
+        var additionalAgents = new Array(this.desiredPopulationSize-this.populationSize);
+        for(let i = 0; i < this.desiredPopulationSize-this.populationSize; i++){
+          additionalAgents[i] = new Agent(this.startBlock, this.startPos.x, this.startPos.y, this.genesSize);
+          additionalAgents[i].generateRandomGenes();
+        }   
+        this.agents = this.agents.concat(additionalAgents);
+      }else if(this.desiredPopulationSize < this.populationSize){
+        this.agents.splice(this.desiredPopulationSize-1, this.populationSize-this.desiredPopulationSize);
+      }
+      this.populationSize = this.desiredPopulationSize;
+      this.desiredPopulationSize = null;
+    }
   }
 
-    getAgentByFitnessSum(_rs) {
+  getAgentByFitnessSum(_rs) {
       var fSum = 0.0;
       for(let i = 0; i < this.populationSize; i++){
         fSum += this.agents[i].fitness;
         if(fSum > _rs)
           return this.agents[i];
       }
-      console.log('lul');
-    }
-
+  }
 
     /*var sortedAgents = [...this.agents];
     sortedAgents.sort(function(a,b){
@@ -349,26 +329,28 @@ class Population{
       this.agents[i].mutateGenes(0.2);
     }*/
 
-  
-
-  resetPopulation(){
+  reset(){
     for(let i = 0; i < this.populationSize; i++){
       this.agents[i] = new Agent(this.startBlock, this.startPos.x, this.startPos.y, this.genesSize);
       this.agents[i].generateRandomGenes();
     }
+    this.generation = 1;
+    this.iteration = 0;
   }
 
   render(){
     ctx.fillStyle = "blue";
-    for(let i = 1; i < this.agents.length; i++){
+    for(let i = 0; i < this.agents.length; i++){
       ctx.beginPath();
       ctx.arc(this.agents[i].pos.x, this.agents[i].pos.y, GRID.cell_size*0.1, 0, 2 * Math.PI);
       ctx.fill();
     }
-    ctx.fillStyle = "magenta";
-    ctx.beginPath();
-    ctx.arc(this.agents[0].pos.x, this.agents[0].pos.y, GRID.cell_size*0.1, 0, 2 * Math.PI);
-    ctx.fill();
+    if(SETTINGS.keepBest){
+      ctx.fillStyle = "magenta";
+      ctx.beginPath();
+      ctx.arc(this.agents[0].pos.x, this.agents[0].pos.y, GRID.cell_size*0.1, 0, 2 * Math.PI);
+      ctx.fill();
+    }
   }
 
   getChildAgent(_a1, _a2){
@@ -464,41 +446,28 @@ class Agent{
 }
 
 function pageLoaded() {
+  GEN_SPAN = document.getElementById('GEN_SPAN');
+  SR_SPAN = document.getElementById('SR_SPAN');
   dragElement(document.getElementById("menuDiv"));
 
   canvas = document.getElementById('canvas1');
-
-  canvas.addEventListener('mousedown', e => {
-    
-  });
-
-  canvas.addEventListener('mousemove', e => {
-    
-  });
-
-  canvas.addEventListener('mouseup', e => {
-
-  });
-  canvas.addEventListener('mouseleave', e => {
-
-  });
 
   canvas.height = canvas.getBoundingClientRect().height;
   canvas.width = canvas.getBoundingClientRect().width;
   ctx = canvas.getContext('2d');
 
   updateGridDimensions();
-  //drawGrid();
 
-  course = new Course();
+  course = new Course(true);
   population = new Population(course);
 
   window.requestAnimationFrame(frame);
 }
 
 function updateGridDimensions() {
-  GRID.width = Math.floor((canvas.width - GRID.cell_size*0.5) / (GRID.cell_size + 1));
-  GRID.height = Math.floor((canvas.height - GRID.cell_size*0.5) / (GRID.cell_size + 1));
+  GRID.cell_size = Math.min((canvas.width*0.9)/GRID.width, (canvas.height*0.9)/GRID.height);
+  //GRID.width = Math.floor((canvas.width - GRID.cell_size*0.5) / (GRID.cell_size + 1));
+  //GRID.height = Math.floor((canvas.height - GRID.cell_size*0.5) / (GRID.cell_size + 1));
   GRID.offset_x = Math.floor((canvas.width - (GRID.cell_size + 1) * GRID.width) / 2);
   GRID.offset_y = Math.floor((canvas.height - (GRID.cell_size + 1) * GRID.height) / 2);
   GRID.cells = new Array(GRID.width * GRID.height).fill(0);
@@ -523,14 +492,13 @@ function drawGrid() {
 
 function frame() {
   window.requestAnimationFrame(frame);
+  if(SETTINGS.edditingMode) return;
   ctx.clearRect(0,0, canvas.width, canvas.height);
 
   course.render();
   //for(let i = 0; i < 10; i++)
   population.update();
   population.render();
-  
-  //drawGrid();
 }
 
 function dragElement(elmnt) {
@@ -567,4 +535,89 @@ function dragElement(elmnt) {
       document.onmouseup = null;
       document.onmousemove = null;
   }
+}
+
+function DOM_MR_change(_val){
+  let v = parseInt(_val);
+  if(v > 100 || v < 0) return;
+      population.mutationRate = v;
+}
+
+function DOM_PS_change(_val){
+  let v = parseInt(_val);
+  if(v > 100 || v < 1) return;
+      population.desiredPopulationSize = v;
+}
+
+function DOM_KB_change(_val){
+  SETTINGS.keepBest = _val;
+}
+
+function DOM_RESET_press(){
+  population.reset();
+}
+
+function DOM_SKIP_press(_val){
+  population.skipGenerations(parseInt(_val));
+}
+
+function DOM_EDIT_press(){
+  SETTINGS.edditingMode = true;
+  document.getElementById('menu1').classList.add('hidden');
+  document.getElementById('menu2').classList.remove('hidden');
+  
+  EDIT.course = new Course(false);
+  EDIT.grid = new Array(GRID.width * GRID.height).fill(0);
+
+  ctx.clearRect(0,0, canvas.width, canvas.height);
+  drawGrid();
+
+  canvas.addEventListener("mousedown", (e) => {
+    let tx = Math.floor((e.clientX - GRID.offset_x)/(GRID.cell_size+1));
+    let ty = Math.floor((e.clientY - GRID.offset_y)/(GRID.cell_size+1));
+    let id = tx + ty * GRID.width;
+    if(EDIT.grid[id] != 0) return;//and if course last block is not neighbour
+    if(EDIT.course.blocks.length > 0 && ![1, GRID.width].includes( Math.abs(EDIT.course.getLastBlockId() - id) ) ) return;
+    //if(EDIT.course.blocks.length > 0)
+    //console.log(Math.abs(EDIT.course.getLastBlockId() - id), [1, GRID.width].includes( Math.abs(EDIT.course.getLastBlockId() - id) ) );
+    EDIT.grid[id] = 1;
+    EDIT.course.addBlock(tx, ty);
+    ctx.clearRect(0,0, canvas.width, canvas.height);
+    drawGrid();
+    EDIT.course.render();
+
+    /*if(EDIT.course.blocks.length == 0){
+      EDIT.grid[tx + ty * GRID.width] = 1;
+      EDIT.course.addBlock(tx, ty);
+      EDIT.course.render();
+    }*/
+  });
+}
+
+function DOM_CLEAR_press(){
+  EDIT.grid = new Array(GRID.width * GRID.height).fill(0);
+  EDIT.course = new Course(false);
+  ctx.clearRect(0,0, canvas.width, canvas.height);
+  drawGrid();
+}
+
+function DOM_DONE_press(){
+  course = EDIT.course;
+  population = new Population(course);
+  EDIT.grid = null;
+  EDIT.course = null;
+  SETTINGS.edditingMode = false;
+  document.getElementById('menu1').classList.remove('hidden');
+  document.getElementById('menu2').classList.add('hidden');
+}
+
+function DOM_CANCEL_press(){
+  document.getElementById('menu2').classList.add('hidden');
+  document.getElementById('menu1').classList.remove('hidden');
+  SETTINGS.edditingMode = false;
+}
+
+function DOM_updateGenerationStats(_gen, _sr){
+  GEN_SPAN.innerHTML = _gen;
+  SR_SPAN.innerHTML = _sr;
 }

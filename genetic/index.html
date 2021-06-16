@@ -10,12 +10,13 @@
 <body onload="pageLoaded()">
     <canvas id="canvas1" oncontextmenu="return false;"></canvas>
     <div id="menuDiv" onmousedown="mouseDownOnDiv(this)">
-        <div>generation: 0</div>
-        <div>reached goal: 0</div>
+        <div id = "menu1">
+        <div>generation: <span id = "GEN_SPAN">0</span> </div>
+        <div>success rate(%): <span id = "SR_SPAN">0</span> </div>
         <div>mutation rate(%): </div>
-        <input id = "input_MR" type="number" value = "5" min = "0" max = "100">
+        <input id = "input_MR" type="number" value = "5" min = "0" max = "100" onchange="DOM_MR_change(this.value, 'MR')">
         <div>population size: </div>
-        <input id = "input_PS" type="number" value = "50" min = "1" max = "200">
+        <input id = "input_PS" type="number" value = "50" min = "1" max = "100" onchange="DOM_PS_change(this.value, 'PS')">
         <div>natural selection: </div>
         <select id="input_NS">
             <option value="volvo">by fitness(linear)</option>
@@ -25,13 +26,30 @@
           </select>
         <div>evolution method: </div>
         <select id="input_EM">
-            <option value="volvo">2 parents</option>
-            <option value="saab">cloning selection</option>
+            <option value="volvo">cloning parent</option>
+            <option value="saab">2 parents</option>
             <option value="fiat">cloning best</option>
           </select>
-        <button>EDIT COURSE</button>
-        <button>RESET</button>
-    </div>
+        <div>keep best: </div>
+        <input type="checkbox" checked onchange="DOM_KB_change(this.checked)">
+        <br>
+        <button onclick="DOM_SKIP_press(50)">SKIP 50 GENERATIONS</button>
+        <br>
+        <button onclick="DOM_SKIP_press(50)">SKIP 100k GENERATIONS</button>
+        <br>
+        <button onclick="DOM_EDIT_press()">EDIT COURSE</button>
+        <br>
+        <button onclick="DOM_RESET_press()">RESET</button>
+        </div>
+        <div id = "menu2" class = "hidden">
+          <button onclick="DOM_CANCEL_press()">CANCEL</button>
+          <br>
+          <button onclick="DOM_CLEAR_press()">CLEAR</button>
+          <br>
+          <button onclick="DOM_DONE_press()">DONE</button>
+          <br>
+        </div>
+      </div>  
 </body>
 
 </html>
