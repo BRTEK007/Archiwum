@@ -223,7 +223,7 @@ class BotGame extends SoloGame{
 		this.grid = grid;
 		this.is_player_playing = true;
 		this.bot = new Bot(cards.length, memory_size);
-		this.bot_speed = 500;
+		this.bot_speed = 600;
 		this.bot_points = 0;
 		this.player_points = 0;
 	}
@@ -317,8 +317,10 @@ class BotGame extends SoloGame{
 
 		if(this.player_points > this.bot_points)
 			document.getElementById("botEnd0").style.display = 'inline-block';
-		else
+		else if(this.player_points < this.bot_points)
 			document.getElementById("botEnd1").style.display = 'inline-block';
+		else
+			document.getElementById("botEnd2").style.display = 'inline-block';
 		
 	}
 

@@ -135,8 +135,10 @@ function next_level(){
     game.level =  level +1;
     game.init();
   }else{
+    game.paused = true;
     alert("You won!");
-    window.close();
+    ctx.filter = 'sepia(1)';
+    game.draw();
   }
 
  }

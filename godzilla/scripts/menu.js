@@ -3,12 +3,6 @@ var captions = [];
 var strings = [];
 var img;
 var frame;
-const HELP_MSG = 
-"Controll godzilla with arrows\n" +
-"Pick up fallen bricks to inventory(left bottom corner)\n"+
-"Repair broken buildings using those bricks by walking by them\n"+
-"smash bomb placing humans\n" +
-"when destruction bar is filled up(right bottom corner) you loose";
 
 function main(){
     img = document.getElementById('icon_img');
@@ -41,7 +35,11 @@ function confirm(){
         break;
         case 1:
             s = ""
-            alert(HELP_MSG);
+            alert("Controll godzilla with arrows\n" +
+            "Pick up fallen bricks to inventory(left bottom corner)\n"+
+            "Repair broken buildings using those bricks by walking by them\n"+
+            "smash bomb placing humans\n" +
+            "when destruction bar is filled up(right bottom corner) you loose");
         break;
     }
 }

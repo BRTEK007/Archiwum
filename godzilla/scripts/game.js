@@ -302,8 +302,10 @@ hide_anim(id){
 }
 
 lost(){
+  this.paused = true;
+  ctx.filter = 'sepia(1)';
+  this.draw();
   alert("You lost!");
-  window.close();
 }
 
 }
