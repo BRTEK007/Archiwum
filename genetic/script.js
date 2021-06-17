@@ -16,7 +16,10 @@ const GRID = {
 
 const SETTINGS = {
   keepBest: true,
-  edditingMode: false
+  edditingMode: false,
+  fastMode: false,
+  evolutionMethod: 'CLONING',//CLONING_BEST, CLONING, PARENTS
+  fitnessFactor : 'LINEAR'//LINEAR, QUADRATIC
 };
 
 const EDIT = {
@@ -237,7 +240,7 @@ class Population{
     this.iteration++;
     if(this.iteration == this.genesSize || finishedAgents == this.populationSize){
       this.evolvePopulation();
-      DOM_updateGenerationStats(this.generation, 100*succesfulAgents/this.populationSize);
+      DOM_updateGenerationStats(this.generation, Math.round(100*succesfulAgents/this.populationSize));
       this.generation++;
       this.iteration = 0;
     }
@@ -254,22 +257,50 @@ class Population{
     var fitnessSum = 0.0;
     var bestAgent = this.agents[0];
     for(let i = 0; i < this.agents.length; i++){
-      if(this.agents[i].hasReachedGoal)
-        this.agents[i].fitness = this.genesSize/30 + 1 - this.agents[i].stepsToReachGoal/this.genesSize;
-      else
-        this.agents[i].fitness = (this.agents[i].furthestBlockReachedIndex + this.agents[i].furthestBlockCoverRate) * 0.8;
+      if(SETTINGS.evolutionMethod != 'CLONING_BEST'){
+        if(this.agents[i].hasReachedGoal)
+          this.agents[i].fitness = 10*(this.genesSize/30 - this.agents[i].stepsToReachGoal/this.genesSize );
+        else
+          this.agents[i].fitness = (this.agents[i].furthestBlockReachedIndex + this.agents[i].furthestBlockCoverRate);
 
-      fitnessSum += this.agents[i].fitness;
+        if(SETTINGS.fitnessFactor == 'QUADRATIC') this.agents[i].fitness = this.agents[i].fitness*this.agents[i].fitness;
+
+        fitnessSum += this.agents[i].fitness;
+      }
       if(this.agents[i].fitness > bestAgent.fitness) bestAgent = this.agents[i];
     }
     var newAgents = new Array(this.populationSize);
 
-    for(let i = 0; i < this.populationSize; i++){
-      let rSum = Math.random() * fitnessSum;
-      let a = this.getAgentByFitnessSum(rSum);  
-      newAgents[i] = new Agent(this.startBlock, this.startPos.x, this.startPos.y);//overrites fitness
-      newAgents[i].genes = [...a.genes];
-      newAgents[i].mutateGenes(this.mutationRate); 
+    if(SETTINGS.evolutionMethod == 'CLONING'){
+      for(let i = 0; i < this.populationSize; i++){
+        let rSum = Math.random() * fitnessSum;
+        let a = this.getAgentByFitnessSum(rSum);  
+        newAgents[i] = new Agent(this.startBlock, this.startPos.x, this.startPos.y);
+        newAgents[i].genes = [...a.genes];
+        newAgents[i].mutateGenes(this.mutationRate); 
+      }
+    }else if(SETTINGS.evolutionMethod == 'CLONING_BEST'){
+      for(let i = 0; i < this.populationSize; i++){
+        newAgents[i] = new Agent(this.startBlock, this.startPos.x, this.startPos.y);
+        newAgents[i].genes = [...bestAgent.genes];
+        newAgents[i].mutateGenes(this.mutationRate); 
+      }
+    }else{//parents
+      for(let i = 0; i < this.populationSize; i++){
+        let rSum1 = Math.random() * fitnessSum;
+        let a1 = this.getAgentByFitnessSum(rSum1);
+        let rSum2 = Math.random() * fitnessSum;
+        let a2 = this.getAgentByFitnessSum(rSum2);
+        while(a1 == a2){
+          rSum2 = Math.random() * fitnessSum;
+          a2 = this.getAgentByFitnessSum(rSum2);
+        }    
+        newAgents[i] = new Agent(this.startBlock, this.startPos.x, this.startPos.y);
+        for(let j = 0; j < this.genesSize; j++){
+          newAgents[i].genes[j] = (Math.random() < 0.5) ? a1.genes[j] : a2.genes[j];
+        }
+        newAgents[i].mutateGenes(this.mutationRate); 
+      }
     }
 
     if(SETTINGS.keepBest) newAgents[0].genes = [...bestAgent.genes];
@@ -278,19 +309,23 @@ class Population{
 
     //resize population if needed
     if(this.desiredPopulationSize!=null){
-      if(this.desiredPopulationSize > this.populationSize){
-        var additionalAgents = new Array(this.desiredPopulationSize-this.populationSize);
-        for(let i = 0; i < this.desiredPopulationSize-this.populationSize; i++){
-          additionalAgents[i] = new Agent(this.startBlock, this.startPos.x, this.startPos.y, this.genesSize);
-          additionalAgents[i].generateRandomGenes();
-        }   
-        this.agents = this.agents.concat(additionalAgents);
-      }else if(this.desiredPopulationSize < this.populationSize){
-        this.agents.splice(this.desiredPopulationSize-1, this.populationSize-this.desiredPopulationSize);
-      }
-      this.populationSize = this.desiredPopulationSize;
+      this.resizePopulation(this.desiredPopulationSize);
       this.desiredPopulationSize = null;
     }
+  }
+
+  resizePopulation(_ds){
+    if(_ds > this.populationSize){
+      var additionalAgents = new Array(_ds-this.populationSize);
+      for(let i = 0; i < _ds-this.populationSize; i++){
+        additionalAgents[i] = new Agent(this.startBlock, this.startPos.x, this.startPos.y, this.genesSize);
+        additionalAgents[i].generateRandomGenes();
+      }   
+      this.agents = this.agents.concat(additionalAgents);
+    }else if(_ds < this.populationSize){
+      this.agents.splice(_ds-1, this.populationSize-_ds);
+    }
+    this.populationSize = _ds;
   }
 
   getAgentByFitnessSum(_rs) {
@@ -301,33 +336,6 @@ class Population{
           return this.agents[i];
       }
   }
-
-    /*var sortedAgents = [...this.agents];
-    sortedAgents.sort(function(a,b){
-      return b.fitness - a.fitness;
-    });
-    //var indexPoll = new Array(this.populationSize*(this.populationSize+1)/2);
-    var indexPoll = [];
-    var afterCutOffSize = Math.floor((1-this.cutOffRate) * this.populationSize);
-    for(let i = 0; i <  afterCutOffSize; i++){
-      for(let j = i*i; j < afterCutOffSize*afterCutOffSize; j++){
-        indexPoll.push(i);
-      }
-    }
-    this.agents[0] = new Agent(this.startBlock, this.startPos.x, this.startPos.y);
-    this.agents[0].genes = [...sortedAgents[0].genes];
-    for(let i = 1; i < this.populationSize; i++){
-      var p1 = sortedAgents[ indexPoll[ Math.floor(Math.random() * indexPoll.length)] ];
-      var p2 = sortedAgents[ indexPoll[ Math.floor(Math.random() * indexPoll.length)] ];
-      /*while(p2 == p1){
-        p2 = sortedAgents[ indexPoll[ Math.floor(Math.random() * indexPoll.length)] ];
-      }
-      var a = this.getChildAgent(p1, p2);
-      this.agents[i] = a;
-      this.agents[i] = new Agent(this.startBlock, this.startPos.x, this.startPos.y, this.genesSize);
-      this.agents[i].genes = [...this.agents[0].genes];
-      this.agents[i].mutateGenes(0.2);
-    }*/
 
   reset(){
     for(let i = 0; i < this.populationSize; i++){
@@ -493,12 +501,17 @@ function drawGrid() {
 function frame() {
   window.requestAnimationFrame(frame);
   if(SETTINGS.edditingMode) return;
-  ctx.clearRect(0,0, canvas.width, canvas.height);
 
-  course.render();
-  //for(let i = 0; i < 10; i++)
-  population.update();
-  population.render();
+  if(SETTINGS.fastMode){
+    for(let i = 0; i < 500; i++)
+      population.update();
+  }else{
+    ctx.clearRect(0,0, canvas.width, canvas.height);
+    course.render();
+    //for(let i = 0; i < 10; i++)
+    population.update();
+    population.render();
+  }
 }
 
 function dragElement(elmnt) {
@@ -545,20 +558,33 @@ function DOM_MR_change(_val){
 
 function DOM_PS_change(_val){
   let v = parseInt(_val);
-  if(v > 100 || v < 1) return;
+  if(v > 100 || v < 2) return;
       population.desiredPopulationSize = v;
 }
 
-function DOM_KB_change(_val){
-  SETTINGS.keepBest = _val;
+function DOM_KB_change(_val){ SETTINGS.keepBest = _val; }
+
+function DOM_RESET_press(){ population.reset(); }
+
+function DOM_SKIP_press(){ population.skipGenerations(50); }
+
+function DOM_FAST_press(){
+  SETTINGS.fastMode = true;
+  GEN_SPAN = document.getElementById('GEN_SPAN_FAST');
+  ctx.filter = "sepia(1)";
+  ctx.clearRect(0,0, canvas.width, canvas.height);
+  course.render();
+  population.render();
+  document.getElementById('menu1').classList.add('hidden');
+  document.getElementById('menu3').classList.remove('hidden');
 }
 
-function DOM_RESET_press(){
-  population.reset();
-}
-
-function DOM_SKIP_press(_val){
-  population.skipGenerations(parseInt(_val));
+function DOM_STOP_press(){
+  SETTINGS.fastMode = false;
+  ctx.filter = "none";
+  GEN_SPAN = document.getElementById('GEN_SPAN');
+  document.getElementById('menu3').classList.add('hidden');
+  document.getElementById('menu1').classList.remove('hidden');
 }
 
 function DOM_EDIT_press(){
@@ -602,6 +628,7 @@ function DOM_CLEAR_press(){
 }
 
 function DOM_DONE_press(){
+  if(EDIT.course.blocks.length < 2) return;
   course = EDIT.course;
   population = new Population(course);
   EDIT.grid = null;
@@ -616,6 +643,9 @@ function DOM_CANCEL_press(){
   document.getElementById('menu1').classList.remove('hidden');
   SETTINGS.edditingMode = false;
 }
+
+function DOM_EM_change(_val){ SETTINGS.evolutionMethod = _val; }
+function DOM_FF_change(_val){ SETTINGS.fitnessFactor = _val; }
 
 function DOM_updateGenerationStats(_gen, _sr){
   GEN_SPAN.innerHTML = _gen;
