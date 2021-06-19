@@ -18,6 +18,8 @@ const SETTINGS = {
   keepBest: true,
   edditingMode: false,
   fastMode: false,
+  mutationRate: 0.05,
+  populationSize: 50,
   evolutionMethod: 'CLONING',//CLONING_BEST, CLONING, PARENTS
   fitnessFactor : 'LINEAR'//LINEAR, QUADRATIC
 };
@@ -308,10 +310,10 @@ class Population{
     this.agents = newAgents;
 
     //resize population if needed
-    if(this.desiredPopulationSize!=null){
-      this.resizePopulation(this.desiredPopulationSize);
-      this.desiredPopulationSize = null;
+    if(this.populationSize != SETTINGS.populationSize){
+      this.resizePopulation(SETTINGS.populationSize);
     }
+    if(this.mutationRate != SETTINGS.mutationRate) this.mutationRate = SETTINGS.mutationRate;
   }
 
   resizePopulation(_ds){
@@ -553,13 +555,13 @@ function dragElement(elmnt) {
 function DOM_MR_change(_val){
   let v = parseInt(_val);
   if(v > 100 || v < 0) return;
-      population.mutationRate = v;
+      SETTINGS.mutationRate = v/100;
 }
 
 function DOM_PS_change(_val){
   let v = parseInt(_val);
   if(v > 100 || v < 2) return;
-      population.desiredPopulationSize = v;
+      SETTINGS.populationSize = v;
 }
 
 function DOM_KB_change(_val){ SETTINGS.keepBest = _val; }
