@@ -6,6 +6,8 @@ function frame() {
         agents[i].update();
 		agents[i].render();
 	}
+    ctx.fillStyle = "white";
+    ctx.fillText("BRO", 100, 100);
 }
 
 //notes display image on ctx and get image data, display text on ctx and get image data
@@ -22,21 +24,14 @@ function setup(){
 	canvas.addEventListener('mousedown', (e) => {
 		console.log(e.offsetX, e.offsetY);
 	});
-	agents = new Array(40);
+	agents = new Array(20);
     var a = 0;
 	for(let i = 0; i < 20; i++){
         a += (Math.PI*2) / 20;
         let x = 384 + Math.round(Math.cos(a) * 100);
         let y = 384 + Math.round(Math.sin(a) * 100);
 		agents[i] = new Agent(x,y, "red");
-	}
-    a = 0;
-    for(let i = 20; i < 40; i++){
-        a += (Math.PI*2) / 20;
-        let x = 668 + Math.round(Math.cos(a) * 100);
-        let y = 384 + Math.round(Math.sin(a) * 100);
-		agents[i] = new Agent(x,y, "green");
-	}
+    }
 	requestAnimationFrame(frame);
 }
 
@@ -48,11 +43,19 @@ class Agent{
         };
 		this.restPos = {x: _rx, y: _ry};
         this.color = _c;
+        this.hasReachedRest = false;
+        this.speed = 10;
+        
+        var v1 = {x : this.restPos.x - this.pos.x, y : this.restPos.y - this.pos.y};
+        var mag = Math.sqrt(v1.x*v1.x + v1.y*v1.y);
+        this.speed = mag/60;
 	}
 	update(){
+        if(this.hasReachedRest) return;
+        
         var move = {x : 0, y : 0};
         
-        if(this.restPos.x > this.pos.x)
+        /*if(this.restPos.x > this.pos.x)
             move.x = 1;
         else if(this.restPos.x < this.pos.x)
             move.x = -1;
@@ -60,10 +63,25 @@ class Agent{
         if(this.restPos.y > this.pos.y)
             move.y = 1;
         else if(this.restPos.y < this.pos.y)
-            move.y = -1;
-            
+            move.y = -1;*/
+        
+        var v1 = {x : this.restPos.x - this.pos.x, y : this.restPos.y - this.pos.y};
+        var mag = Math.sqrt(v1.x*v1.x + v1.y*v1.y);
+        
+        var m = Math.min(mag, this.speed);
+        
+        move.x = m*v1.x/mag;
+        move.y = m*v1.y/mag;
+        
         this.pos.x += move.x;
         this.pos.y += move.y;
+        
+        if(mag < 1){
+            this.pos.x = this.restPos.x;
+            this.pos.y = this.restPos.y;
+            this.hasReachedRest = true;
+            this.color = "white";
+        }
 	}
 	render(){
 		ctx.fillStyle = this.color;
