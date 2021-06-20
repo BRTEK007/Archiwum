@@ -2,12 +2,13 @@
 function frame() {
 	requestAnimationFrame(frame);
     ctx.clearRect(0,0,1563, 768);
-	for(let i = 0; i < agents.length; i++){
+	/*for(let i = 0; i < agents.length; i++){
         agents[i].update();
 		agents[i].render();
-	}
+	}*/
     ctx.fillStyle = "white";
-    ctx.fillText("BRO", 100, 100);
+    ctx.font = "40px Ariel";
+    ctx.fillText("MOL", 0, 50);
 }
 
 //notes display image on ctx and get image data, display text on ctx and get image data
@@ -18,8 +19,8 @@ var agents;
 
 function setup(){
 	canvas = document.getElementById('myCanvas');
-	canvas.width = 1563;
-	canvas.height = 768;
+	canvas.width = 100;//1563
+	canvas.height = 50;//768
 	ctx = canvas.getContext("2d");
 	canvas.addEventListener('mousedown', (e) => {
 		console.log(e.offsetX, e.offsetY);

@@ -7,6 +7,10 @@ canvas{
 	height: 768px;
 	margin-top: calc((100vh - 768px)*0.5);
 	margin-left: calc((100vw - 1563px)*0.5);
+    image-rendering: -moz-crisp-edges;
+  	image-rendering: -webkit-crisp-edges;
+	image-rendering: pixelated;
+	image-rendering: crisp-edges;
 }
 
 body,html{
