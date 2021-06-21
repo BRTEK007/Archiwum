@@ -1,14 +1,14 @@
 'use strict';
+function sleep(ms) {return new Promise(resolve => setTimeout(resolve, ms));}
+function rgb(r, g, b){return "rgb("+r+","+g+","+b+")";}
+
 function frame() {
 	requestAnimationFrame(frame);
     ctx.clearRect(0,0,1563, 768);
-	/*for(let i = 0; i < agents.length; i++){
+	for(let i = 0; i < agents.length; i++){
         agents[i].update();
 		agents[i].render();
-	}*/
-    ctx.fillStyle = "white";
-    ctx.font = "40px Ariel";
-    ctx.fillText("MOL", 0, 50);
+	}
 }
 
 //notes display image on ctx and get image data, display text on ctx and get image data
@@ -17,22 +17,45 @@ var canvas;
 var ctx;
 var agents;
 
-function setup(){
+async function setup(){
 	canvas = document.getElementById('myCanvas');
-	canvas.width = 100;//1563
-	canvas.height = 50;//768
+	canvas.width = 1563;//1563
+	canvas.height = 768;//768
 	ctx = canvas.getContext("2d");
 	canvas.addEventListener('mousedown', (e) => {
-		console.log(e.offsetX, e.offsetY);
+		//console.log(e.offsetX, e.offsetY);
+		for(let i = 0; i < agents.length; i++){
+			agents[i].teleport(e.offsetX, e.offsetY);
+		}
 	});
-	agents = new Array(20);
-    var a = 0;
-	for(let i = 0; i < 20; i++){
-        a += (Math.PI*2) / 20;
-        let x = 384 + Math.round(Math.cos(a) * 100);
-        let y = 384 + Math.round(Math.sin(a) * 100);
-		agents[i] = new Agent(x,y, "red");
-    }
+
+	var image2 = new Image();
+    image2.src = "image.gif";
+	await sleep(100);
+    ctx.drawImage(image2, 0, 0, 32, 32);
+	await sleep(100);
+	var pixels = ctx.getImageData(0, 0, 32, 32).data;
+
+	agents = [];
+
+	for(let y = 0; y < 32; y++){
+		for(let x = 0; x < 32; x++){
+			let id = x + y*32;
+			/*for(let i = 0; i < 4; i++){
+				c += pixels[id*4 + i];
+			}*/
+			let r = pixels[id*4];
+			let g = pixels[id*4+1];
+			let b = pixels[id*4+2];
+			if( (r+g+b) != 0){
+				let ax = x*20;
+				let ay = y*20;
+				agents.push(new Agent(ax,ay, rgb(r,g,b) ));
+			}
+		}
+	}
+	
+
 	requestAnimationFrame(frame);
 }
 
@@ -47,7 +70,15 @@ class Agent{
         this.hasReachedRest = false;
         this.speed = 10;
         
-        var v1 = {x : this.restPos.x - this.pos.x, y : this.restPos.y - this.pos.y};
+        /*var v1 = {x : this.restPos.x - this.pos.x, y : this.restPos.y - this.pos.y};
+        var mag = Math.sqrt(v1.x*v1.x + v1.y*v1.y);
+        this.speed = mag/60;*/
+	}
+	teleport(_x, _y){
+		this.pos.x = _x;
+		this.pos.y = _y;
+		this.hasReachedRest = false;
+		var v1 = {x : this.restPos.x - this.pos.x, y : this.restPos.y - this.pos.y};
         var mag = Math.sqrt(v1.x*v1.x + v1.y*v1.y);
         this.speed = mag/60;
 	}
@@ -81,13 +112,14 @@ class Agent{
             this.pos.x = this.restPos.x;
             this.pos.y = this.restPos.y;
             this.hasReachedRest = true;
-            this.color = "white";
+            //this.color = "white";
         }
 	}
 	render(){
 		ctx.fillStyle = this.color;
         ctx.beginPath();
-		ctx.arc(this.pos.x, this.pos.y, 10, 0, Math.PI*2);
+		//ctx.arc(this.pos.x, this.pos.y, 10, 0, Math.PI*2);
+		ctx.rect(this.pos.x, this.pos.y,20,20);
 		ctx.fill();
 	}
 }
