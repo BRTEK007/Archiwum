@@ -4,7 +4,7 @@ function rgb(r, g, b){return "rgb("+r+","+g+","+b+")";}
 
 function frame() {
 	requestAnimationFrame(frame);
-    ctx.clearRect(0,0,1563, 768);
+    ctx.clearRect(0,0,canvas.width, canvas.height);
 	for(let i = 0; i < agents.length; i++){
         agents[i].update();
 		agents[i].render();
@@ -16,11 +16,12 @@ function frame() {
 var canvas;
 var ctx;
 var agents;
+const PIXEL_SIZE = 30;
 
 async function setup(){
 	canvas = document.getElementById('myCanvas');
-	canvas.width = 1563;//1563
-	canvas.height = 768;//768
+	canvas.width = canvas.getBoundingClientRect().width;//1563
+	canvas.height = canvas.getBoundingClientRect().height;//768
 	ctx = canvas.getContext("2d");
 	canvas.addEventListener('mousedown', (e) => {
 		//console.log(e.offsetX, e.offsetY);
@@ -29,27 +30,28 @@ async function setup(){
 		}
 	});
 
-	var image2 = new Image();
-    image2.src = "image.gif";
+	var image = new Image();
+    image.src = "image4.gif";
 	await sleep(100);
-    ctx.drawImage(image2, 0, 0, 32, 32);
+    ctx.drawImage(image, 0, 0, image.width, image.height);
 	await sleep(100);
-	var pixels = ctx.getImageData(0, 0, 32, 32).data;
+	var pixels = ctx.getImageData(0, 0, image.width, image.height).data;
 
 	agents = [];
 
-	for(let y = 0; y < 32; y++){
-		for(let x = 0; x < 32; x++){
-			let id = x + y*32;
+	for(let y = 0; y < image.height; y++){
+		for(let x = 0; x < image.width; x++){
+			let id = x + y*image.width;
 			/*for(let i = 0; i < 4; i++){
 				c += pixels[id*4 + i];
 			}*/
 			let r = pixels[id*4];
 			let g = pixels[id*4+1];
 			let b = pixels[id*4+2];
-			if( (r+g+b) != 0){
-				let ax = x*20;
-				let ay = y*20;
+			let a = pixels[id*4+3];
+			if(a != 0){
+				let ax = x*PIXEL_SIZE;
+				let ay = y*PIXEL_SIZE;
 				agents.push(new Agent(ax,ay, rgb(r,g,b) ));
 			}
 		}
@@ -62,8 +64,8 @@ async function setup(){
 class Agent{
 	constructor(_rx, _ry, _c){
 		this.pos = {
-            x: Math.floor(Math.random() * 1563), 
-            y: Math.floor(Math.random() * 768)
+            x: Math.floor(Math.random() * canvas.width), 
+            y: Math.floor(Math.random() * canvas.height)
         };
 		this.restPos = {x: _rx, y: _ry};
         this.color = _c;
@@ -78,26 +80,33 @@ class Agent{
 		this.pos.x = _x;
 		this.pos.y = _y;
 		this.hasReachedRest = false;
-		var v1 = {x : this.restPos.x - this.pos.x, y : this.restPos.y - this.pos.y};
+		/*var v1 = {x : this.restPos.x - this.pos.x, y : this.restPos.y - this.pos.y};
         var mag = Math.sqrt(v1.x*v1.x + v1.y*v1.y);
-        this.speed = mag/60;
+        this.speed = mag/60;*/
 	}
 	update(){
         if(this.hasReachedRest) return;
         
         var move = {x : 0, y : 0};
         
-        /*if(this.restPos.x > this.pos.x)
-            move.x = 1;
-        else if(this.restPos.x < this.pos.x)
-            move.x = -1;
-        
         if(this.restPos.y > this.pos.y)
-            move.y = 1;
+            move.y = Math.min(this.restPos.y - this.pos.y, this.speed);
         else if(this.restPos.y < this.pos.y)
-            move.y = -1;*/
+            move.y = Math.max(this.restPos.y - this.pos.y, -this.speed);
+
+		if(this.restPos.x > this.pos.x)
+            move.x = Math.min(this.restPos.x - this.pos.x, this.speed);
+        else if(this.restPos.x < this.pos.x)
+            move.x = Math.max(this.restPos.x - this.pos.x, -this.speed);
+
+		this.pos.x += move.x;
+		this.pos.y += move.y;
+
+		if(this.restPos.x == this.pos.x && this.restPos.y == this.pos.y){
+			this.hasReachedRest = true;
+		}
         
-        var v1 = {x : this.restPos.x - this.pos.x, y : this.restPos.y - this.pos.y};
+        /*var v1 = {x : this.restPos.x - this.pos.x, y : this.restPos.y - this.pos.y};
         var mag = Math.sqrt(v1.x*v1.x + v1.y*v1.y);
         
         var m = Math.min(mag, this.speed);
@@ -112,14 +121,13 @@ class Agent{
             this.pos.x = this.restPos.x;
             this.pos.y = this.restPos.y;
             this.hasReachedRest = true;
-            //this.color = "white";
-        }
+        }*/
 	}
 	render(){
 		ctx.fillStyle = this.color;
         ctx.beginPath();
 		//ctx.arc(this.pos.x, this.pos.y, 10, 0, Math.PI*2);
-		ctx.rect(this.pos.x, this.pos.y,20,20);
+		ctx.rect(this.pos.x+1, this.pos.y+1,PIXEL_SIZE-2,PIXEL_SIZE-2);
 		ctx.fill();
 	}
 }
