@@ -5,14 +5,14 @@ function rgb(r, g, b){return "rgb("+r+","+g+","+b+")";}
 function frame() {
 	requestAnimationFrame(frame);
     ctx.clearRect(0,0,canvas.width, canvas.height);
-	var updatedPixels = 0;
+	//var updatedPixels = 0;
 	for(let i = 0; i < agents.length; i++){
-		if(!agents[i].hasReachedRest){ 
-			updatedPixels++;
+		//if(!agents[i].hasReachedRest){ 
+			//updatedPixels++;
         	agents[i].update();
 			agents[i].render(ctx);
-			if(updatedPixels > 1024) break;
-		}
+			//if(updatedPixels > 1024) break;
+		//}
 	}
 }
 
@@ -28,13 +28,7 @@ async function setup(){
 	canvas.width = canvas.getBoundingClientRect().width;//1563
 	canvas.height = canvas.getBoundingClientRect().height;//768
 	ctx = canvas.getContext("2d");
-	canvas.addEventListener('mousedown', (e) => {
-		//console.log(e.offsetX, e.offsetY);
-		ctx2.clearRect(0,0,canvas.width, canvas.height);
-		for(let i = 0; i < agents.length; i++){
-			agents[i].teleport(e.offsetX, e.offsetY);
-		}
-	});
+	canvas.addEventListener('mousedown', mouseClick );
 	canvas2 = document.getElementById('myCanvas2');
 	canvas2.width = canvas.width;//1563
 	canvas2.height = canvas.height;//768
@@ -73,22 +67,20 @@ async function setup(){
 
 class Agent{
 	constructor(_rx, _ry, _c){
-		this.pos = {
-            x: Math.floor(Math.random() * canvas.width), 
-            y: Math.floor(Math.random() * canvas.height)
-        };
-		this.restPos = {x: _rx, y: _ry};
+		this.pos = new Vector2D(_rx, _ry);
+		this.restPos = new Vector2D(_rx, _ry);
         this.color = _c;
-        this.hasReachedRest = false;
+        this.hasReachedRest = true;
         this.speed = 10;
         
+		this.vel = new Vector2D(0,0);
+		this.drag = 0.95;
         /*var v1 = {x : this.restPos.x - this.pos.x, y : this.restPos.y - this.pos.y};
         var mag = Math.sqrt(v1.x*v1.x + v1.y*v1.y);
         this.speed = mag/60;*/
 	}
 	teleport(_x, _y){
-		this.pos.x = _x;
-		this.pos.y = _y;
+		this.pos = new Vector2D(_x, _y);
 		this.hasReachedRest = false;
 		/*var v1 = {x : this.restPos.x - this.pos.x, y : this.restPos.y - this.pos.y};
         var mag = Math.sqrt(v1.x*v1.x + v1.y*v1.y);
@@ -96,6 +88,18 @@ class Agent{
 	}
 	update(){
         if(this.hasReachedRest) return;
+		var dir = this.restPos.sub(this.pos);
+		this.vel = this.vel.add(dir.unit());
+		this.vel = this.vel.mult(this.drag);
+		this.pos = this.pos.add(this.vel);
+
+		if(dir.mag() < 1/*1*/){
+			this.pos = this.restPos.copy();
+            this.hasReachedRest = true;
+			this.vel = new Vector2D(0,0);
+		}
+
+		return;
         
         var move = {x : 0, y : 0};
         
@@ -141,5 +145,47 @@ class Agent{
 		//ctx.arc(this.pos.x, this.pos.y, 10, 0, Math.PI*2);
 		_ctx.rect(this.pos.x+1, this.pos.y+1,PIXEL_SIZE-2,PIXEL_SIZE-2);
 		_ctx.fill();
+	}
+}
+
+class Vector2D{
+	constructor(_x, _y){
+		this.x = _x;
+		this.y = _y;
+	}
+	mag(){
+		return Math.sqrt(this.x*this.x + this.y*this.y);
+	}
+	unit(){
+		let m = this.mag();
+		if(m == 0) return new Vector2D(0,0);
+		return new Vector2D(this.x/m, this.y/m);
+	}
+	mult(m){
+		return new Vector2D(this.x * m, this.y * m); 
+	}
+	add(v){
+		return new Vector2D(this.x + v.x, this.y + v.y);
+	}
+	sub(v){
+		return new Vector2D(this.x - v.x, this.y - v.y);
+	}
+	copy(){
+		return new Vector2D(this.x, this.y);
+	}
+}
+
+function mouseClick(e){
+	ctx2.clearRect(0,0,canvas.width, canvas.height);
+	/*for(let i = 0; i < agents.length; i++){
+		agents[i].teleport(e.offsetX, e.offsetY);
+	}*/
+	for(let i = 0; i < agents.length; i++){
+		//var v = new Vector2D(agents[i].pos.x, agents[i].pos.y);
+		//agents[i].teleport(e.offsetX, e.offsetY);
+		var dir = agents[i].pos.sub(new Vector2D(e.offsetX, e.offsetY));
+		agents[i].vel = agents[i].vel.add(dir.mult(10/dir.mag()));
+		agents[i].pos = agents[i].pos.add(agents[i].vel);
+		agents[i].hasReachedRest = false;
 	}
 }
