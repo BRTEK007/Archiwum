@@ -5,18 +5,23 @@ function rgb(r, g, b){return "rgb("+r+","+g+","+b+")";}
 function frame() {
 	requestAnimationFrame(frame);
     ctx.clearRect(0,0,canvas.width, canvas.height);
+	var updatedPixels = 0;
 	for(let i = 0; i < agents.length; i++){
-        agents[i].update();
-		agents[i].render();
+		if(!agents[i].hasReachedRest){ 
+			updatedPixels++;
+        	agents[i].update();
+			agents[i].render(ctx);
+			if(updatedPixels > 1024) break;
+		}
 	}
 }
 
 //notes display image on ctx and get image data, display text on ctx and get image data
 
-var canvas;
-var ctx;
+var canvas, canvas2;
+var ctx, ctx2;
 var agents;
-const PIXEL_SIZE = 30;
+const PIXEL_SIZE = 20;
 
 async function setup(){
 	canvas = document.getElementById('myCanvas');
@@ -25,10 +30,15 @@ async function setup(){
 	ctx = canvas.getContext("2d");
 	canvas.addEventListener('mousedown', (e) => {
 		//console.log(e.offsetX, e.offsetY);
+		ctx2.clearRect(0,0,canvas.width, canvas.height);
 		for(let i = 0; i < agents.length; i++){
 			agents[i].teleport(e.offsetX, e.offsetY);
 		}
 	});
+	canvas2 = document.getElementById('myCanvas2');
+	canvas2.width = canvas.width;//1563
+	canvas2.height = canvas.height;//768
+	ctx2 = canvas2.getContext("2d");
 
 	var image = new Image();
     image.src = "image4.gif";
@@ -89,7 +99,7 @@ class Agent{
         
         var move = {x : 0, y : 0};
         
-        if(this.restPos.y > this.pos.y)
+        /*if(this.restPos.y > this.pos.y)
             move.y = Math.min(this.restPos.y - this.pos.y, this.speed);
         else if(this.restPos.y < this.pos.y)
             move.y = Math.max(this.restPos.y - this.pos.y, -this.speed);
@@ -104,9 +114,10 @@ class Agent{
 
 		if(this.restPos.x == this.pos.x && this.restPos.y == this.pos.y){
 			this.hasReachedRest = true;
-		}
+			this.render(ctx2);
+		}*/
         
-        /*var v1 = {x : this.restPos.x - this.pos.x, y : this.restPos.y - this.pos.y};
+        var v1 = {x : this.restPos.x - this.pos.x, y : this.restPos.y - this.pos.y};
         var mag = Math.sqrt(v1.x*v1.x + v1.y*v1.y);
         
         var m = Math.min(mag, this.speed);
@@ -121,13 +132,14 @@ class Agent{
             this.pos.x = this.restPos.x;
             this.pos.y = this.restPos.y;
             this.hasReachedRest = true;
-        }*/
+			this.render(ctx2);
+        }
 	}
-	render(){
-		ctx.fillStyle = this.color;
-        ctx.beginPath();
+	render(_ctx){
+		_ctx.fillStyle = this.color;
+        _ctx.beginPath();
 		//ctx.arc(this.pos.x, this.pos.y, 10, 0, Math.PI*2);
-		ctx.rect(this.pos.x+1, this.pos.y+1,PIXEL_SIZE-2,PIXEL_SIZE-2);
-		ctx.fill();
+		_ctx.rect(this.pos.x+1, this.pos.y+1,PIXEL_SIZE-2,PIXEL_SIZE-2);
+		_ctx.fill();
 	}
 }
