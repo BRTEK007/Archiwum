@@ -16,12 +16,21 @@
 		<button>PREVIOUS</button>
 		<button>NEXT</button>
 		<button>RANDOM</button>
+		<button>MOVE & SCALE</button>
 		<div>force method: </div>
 		<select id="input_FF" onchange="DOM_FF_change(this.value)">
 			<option value="LINEAR">PUSH</option>
             <option value="LINEAR">PULL 1</option>
             <option value="QUADRATIC">PULL 2</option>
           </select>
+		  <div>pixelType: </div>
+		  <select id="input_FF" onchange="DOM_FF_change(this.value)">
+			<option value="LINEAR">RECTANGLE</option>
+            <option value="LINEAR">RECTANGLE 2</option>
+            <option value="QUADRATIC">CIRCLE</option>
+          </select>
+		<div>background: </div>
+		<input type="color" id="favcolor" name="favcolor" value="#ff0000">
 	</div>
 </body>
 </html>

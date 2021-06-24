@@ -5,6 +5,14 @@ function rgb(r, g, b){return "rgb("+r+","+g+","+b+")";}
 function frame() {
 	requestAnimationFrame(frame);
     ctx.clearRect(0,0,canvas.width, canvas.height);
+	for(let i = 0; i < agents.length; i++){
+		if(MOUSE.down){
+			agents[i].pos.x = agents[i].restPos.x*PIXEL_SIZE + MOUSE.x - PIXEL_SIZE * currentImage.width/2;
+			agents[i].pos.y = agents[i].restPos.y*PIXEL_SIZE + MOUSE.y - PIXEL_SIZE * currentImage.height/2;
+		}
+		agents[i].render(ctx);
+	}
+	return;
 	if(MOUSE.down) pushAgents();
 	for(let i = 0; i < agents.length; i++){
         	agents[i].update();
@@ -17,12 +25,13 @@ function frame() {
 var canvas;
 var ctx;
 var agents;
-const PIXEL_SIZE = 20;
+var PIXEL_SIZE = 20;
 const MOUSE = {
 	down: false,
-	x : null,
-	y : null
-}
+	x : 0,
+	y : 0
+};
+var currentImage;
 
 async function setup(){
 	dragElement(document.getElementById("menuDiv"));
@@ -34,19 +43,23 @@ async function setup(){
 	canvas.addEventListener('mousemove', (e) => {MOUSE.x = e.offsetX; MOUSE.y = e.offsetY} );
 	canvas.addEventListener('mouseup', (e) => {MOUSE.down = false;} );
 	canvas.addEventListener('mouseleave', (e) => {MOUSE.down = false;} );
+	canvas.addEventListener('wheel', (e) => {
+		PIXEL_SIZE += e.deltaY/100;
+		PIXEL_SIZE = Math.min(Math.max(PIXEL_SIZE, 10), 50);
+	});
 
-	var image = new Image();
-    image.src = "image4.gif";
+	currentImage = new Image();
+    currentImage.src = "image4.gif";
 	await sleep(100);
-    ctx.drawImage(image, 0, 0, image.width, image.height);
+    ctx.drawImage(currentImage, 0, 0, currentImage.width, currentImage.height);
 	await sleep(100);
-	var pixels = ctx.getImageData(0, 0, image.width, image.height).data;
+	var pixels = ctx.getImageData(0, 0, currentImage.width, currentImage.height).data;
 
 	agents = [];
 
-	for(let y = 0; y < image.height; y++){
-		for(let x = 0; x < image.width; x++){
-			let id = x + y*image.width;
+	for(let y = 0; y < currentImage.height; y++){
+		for(let x = 0; x < currentImage.width; x++){
+			let id = x + y*currentImage.width;
 			/*for(let i = 0; i < 4; i++){
 				c += pixels[id*4 + i];
 			}*/
@@ -55,8 +68,8 @@ async function setup(){
 			let b = pixels[id*4+2];
 			let a = pixels[id*4+3];
 			if(a != 0){
-				let ax = x*PIXEL_SIZE+200;
-				let ay = y*PIXEL_SIZE+200;
+				let ax = x;
+				let ay = y;
 				agents.push(new Agent(ax,ay, rgb(r,g,b) ));
 			}
 		}
@@ -185,6 +198,7 @@ function pushAgents(){
 		agents[i].hasReachedRest = false;
 	}
 }
+
 function dragElement(elmnt) {
 	var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
 	elmnt.onmousedown = dragMouseDown;
