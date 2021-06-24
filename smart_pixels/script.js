@@ -5,34 +5,35 @@ function rgb(r, g, b){return "rgb("+r+","+g+","+b+")";}
 function frame() {
 	requestAnimationFrame(frame);
     ctx.clearRect(0,0,canvas.width, canvas.height);
-	//var updatedPixels = 0;
+	if(MOUSE.down) pushAgents();
 	for(let i = 0; i < agents.length; i++){
-		//if(!agents[i].hasReachedRest){ 
-			//updatedPixels++;
         	agents[i].update();
 			agents[i].render(ctx);
-			//if(updatedPixels > 1024) break;
-		//}
 	}
 }
 
 //notes display image on ctx and get image data, display text on ctx and get image data
 
-var canvas, canvas2;
-var ctx, ctx2;
+var canvas;
+var ctx;
 var agents;
 const PIXEL_SIZE = 20;
+const MOUSE = {
+	down: false,
+	x : null,
+	y : null
+}
 
 async function setup(){
+	dragElement(document.getElementById("menuDiv"));
 	canvas = document.getElementById('myCanvas');
 	canvas.width = canvas.getBoundingClientRect().width;//1563
 	canvas.height = canvas.getBoundingClientRect().height;//768
 	ctx = canvas.getContext("2d");
-	canvas.addEventListener('mousedown', mouseClick );
-	canvas2 = document.getElementById('myCanvas2');
-	canvas2.width = canvas.width;//1563
-	canvas2.height = canvas.height;//768
-	ctx2 = canvas2.getContext("2d");
+	canvas.addEventListener('mousedown', (e) => {MOUSE.down = true; MOUSE.x = e.offsetX; MOUSE.y = e.offsetY} );
+	canvas.addEventListener('mousemove', (e) => {MOUSE.x = e.offsetX; MOUSE.y = e.offsetY} );
+	canvas.addEventListener('mouseup', (e) => {MOUSE.down = false;} );
+	canvas.addEventListener('mouseleave', (e) => {MOUSE.down = false;} );
 
 	var image = new Image();
     image.src = "image4.gif";
@@ -54,8 +55,8 @@ async function setup(){
 			let b = pixels[id*4+2];
 			let a = pixels[id*4+3];
 			if(a != 0){
-				let ax = x*PIXEL_SIZE;
-				let ay = y*PIXEL_SIZE;
+				let ax = x*PIXEL_SIZE+200;
+				let ay = y*PIXEL_SIZE+200;
 				agents.push(new Agent(ax,ay, rgb(r,g,b) ));
 			}
 		}
@@ -74,7 +75,7 @@ class Agent{
         this.speed = 10;
         
 		this.vel = new Vector2D(0,0);
-		this.drag = 0.95;
+		this.drag = 0.9;
         /*var v1 = {x : this.restPos.x - this.pos.x, y : this.restPos.y - this.pos.y};
         var mag = Math.sqrt(v1.x*v1.x + v1.y*v1.y);
         this.speed = mag/60;*/
@@ -93,7 +94,7 @@ class Agent{
 		this.vel = this.vel.mult(this.drag);
 		this.pos = this.pos.add(this.vel);
 
-		if(dir.mag() < 1/*1*/){
+		if(dir.mag() < this.vel.mag()){
 			this.pos = this.restPos.copy();
             this.hasReachedRest = true;
 			this.vel = new Vector2D(0,0);
@@ -118,7 +119,6 @@ class Agent{
 
 		if(this.restPos.x == this.pos.x && this.restPos.y == this.pos.y){
 			this.hasReachedRest = true;
-			this.render(ctx2);
 		}*/
         
         var v1 = {x : this.restPos.x - this.pos.x, y : this.restPos.y - this.pos.y};
@@ -136,7 +136,6 @@ class Agent{
             this.pos.x = this.restPos.x;
             this.pos.y = this.restPos.y;
             this.hasReachedRest = true;
-			this.render(ctx2);
         }
 	}
 	render(_ctx){
@@ -175,17 +174,49 @@ class Vector2D{
 	}
 }
 
-function mouseClick(e){
-	ctx2.clearRect(0,0,canvas.width, canvas.height);
-	/*for(let i = 0; i < agents.length; i++){
-		agents[i].teleport(e.offsetX, e.offsetY);
-	}*/
+function pushAgents(){
 	for(let i = 0; i < agents.length; i++){
-		//var v = new Vector2D(agents[i].pos.x, agents[i].pos.y);
-		//agents[i].teleport(e.offsetX, e.offsetY);
-		var dir = agents[i].pos.sub(new Vector2D(e.offsetX, e.offsetY));
-		agents[i].vel = agents[i].vel.add(dir.mult(10/dir.mag()));
+		var dir = agents[i].pos.sub(new Vector2D(MOUSE.x, MOUSE.y));
+		var mag = dir.mag();
+		//agents[i].vel = agents[i].vel.add(dir.unit().mult(2000/(mag*mag)));
+		agents[i].vel = agents[i].vel.sub(dir.unit().mult(2));
+		//agents[i].vel = agents[i].vel.sub(dir.mult(0.005));
 		agents[i].pos = agents[i].pos.add(agents[i].vel);
 		agents[i].hasReachedRest = false;
 	}
 }
+function dragElement(elmnt) {
+	var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+	elmnt.onmousedown = dragMouseDown;
+	
+  
+	function dragMouseDown(e) {
+		e = e || window.event;
+		//e.preventDefault();
+		// get the mouse cursor position at startup:
+		pos3 = e.clientX;
+		pos4 = e.clientY;
+		document.onmouseup = closeDragElement;
+		// call a function whenever the cursor moves:
+		document.onmousemove = elementDrag;
+	}
+  
+	function elementDrag(e) {
+		e = e || window.event;
+		//e.preventDefault();
+		// calculate the new cursor position:
+		pos1 = pos3 - e.clientX;
+		pos2 = pos4 - e.clientY;
+		pos3 = e.clientX;
+		pos4 = e.clientY;
+		// set the element's new position:
+		elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+		elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+	}
+  
+	function closeDragElement() {
+		// stop moving when mouse button is released:
+		document.onmouseup = null;
+		document.onmousemove = null;
+	}
+  }

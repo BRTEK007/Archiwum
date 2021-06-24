@@ -10,7 +10,18 @@
 </head>
 
 <body onload="setup()">
-	<canvas id = 'myCanvas2' ></canvas>
 	<canvas id = 'myCanvas' ></canvas>
+	<div id="menuDiv">
+		<div>image:</div>
+		<button>PREVIOUS</button>
+		<button>NEXT</button>
+		<button>RANDOM</button>
+		<div>force method: </div>
+		<select id="input_FF" onchange="DOM_FF_change(this.value)">
+			<option value="LINEAR">PUSH</option>
+            <option value="LINEAR">PULL 1</option>
+            <option value="QUADRATIC">PULL 2</option>
+          </select>
+	</div>
 </body>
 </html>
