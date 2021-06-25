@@ -5,15 +5,15 @@ function rgb(r, g, b){return "rgb("+r+","+g+","+b+")";}
 function frame() {
 	requestAnimationFrame(frame);
     ctx.clearRect(0,0,canvas.width, canvas.height);
-	for(let i = 0; i < agents.length; i++){
+	/*for(let i = 0; i < agents.length; i++){
 		if(MOUSE.down){
 			agents[i].pos.x = agents[i].restPos.x*PIXEL_SIZE + MOUSE.x - PIXEL_SIZE * currentImage.width/2;
 			agents[i].pos.y = agents[i].restPos.y*PIXEL_SIZE + MOUSE.y - PIXEL_SIZE * currentImage.height/2;
 		}
 		agents[i].render(ctx);
 	}
-	return;
-	if(MOUSE.down) pushAgents();
+	return;*/
+	if(MOUSE.down) applyForceToAgents();
 	for(let i = 0; i < agents.length; i++){
         	agents[i].update();
 			agents[i].render(ctx);
@@ -30,6 +30,10 @@ const MOUSE = {
 	down: false,
 	x : 0,
 	y : 0
+};
+const SETTINGS = {
+    forceFunction: forceFunction2,
+    moving_mode: false
 };
 var currentImage;
 
@@ -81,8 +85,9 @@ async function setup(){
 
 class Agent{
 	constructor(_rx, _ry, _c){
-		this.pos = new Vector2D(_rx, _ry);
-		this.restPos = new Vector2D(_rx, _ry);
+        this.imagePos = new Vector2D(_rx, _ry);
+		this.restPos = new Vector2D(_rx * PIXEL_SIZE, _ry*PIXEL_SIZE);
+        this.pos = new Vector2D(this.restPos.x, this.restPos.y);
         this.color = _c;
         this.hasReachedRest = true;
         this.speed = 10;
@@ -168,6 +173,9 @@ class Vector2D{
 	mag(){
 		return Math.sqrt(this.x*this.x + this.y*this.y);
 	}
+    mag_sqr(){
+        return this.x*this.x + this.y*this.y;
+    }
 	unit(){
 		let m = this.mag();
 		if(m == 0) return new Vector2D(0,0);
@@ -187,17 +195,24 @@ class Vector2D{
 	}
 }
 
-function pushAgents(){
+function applyForceToAgents(){
 	for(let i = 0; i < agents.length; i++){
 		var dir = agents[i].pos.sub(new Vector2D(MOUSE.x, MOUSE.y));
-		var mag = dir.mag();
-		//agents[i].vel = agents[i].vel.add(dir.unit().mult(2000/(mag*mag)));
-		agents[i].vel = agents[i].vel.sub(dir.unit().mult(2));
+		//var mag = dir.mag();
+        SETTINGS.forceFunction(agents[i], dir);
+        //forceFunction1(agents[i], dir);
+		//agents[i].vel = agents[i].vel.add(dir.unit().mult(2000/(dir.mag_sqr())));
+		//agents[i].vel = agents[i].vel.sub(dir.unit().mult(2));
 		//agents[i].vel = agents[i].vel.sub(dir.mult(0.005));
 		agents[i].pos = agents[i].pos.add(agents[i].vel);
 		agents[i].hasReachedRest = false;
 	}
 }
+
+function forceFunction1(_a, _v){_a.vel = _a.vel.add(_v.unit().mult(2000/(_v.mag_sqr())));}
+function forceFunction2(_a, _v){_a.vel = _a.vel.sub(_v.unit().mult(2));}
+function forceFunction3(_a, _v){_a.vel = _a.vel.sub(_v.mult(0.005));}
+
 
 function dragElement(elmnt) {
 	var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
