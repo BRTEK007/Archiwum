@@ -25,7 +25,6 @@ function frame() {
 var canvas;
 var ctx;
 var agents;
-var PIXEL_SIZE = 20;
 const MOUSE = {
 	down: false,
 	x : 0,
@@ -33,7 +32,9 @@ const MOUSE = {
 };
 const SETTINGS = {
     forceFunction: forceFunction2,
-    moving_mode: false
+    moving_mode: false,
+    pixel_size: 20,
+    offset: {x : 0, y : 0}
 };
 var currentImage;
 
@@ -48,8 +49,8 @@ async function setup(){
 	canvas.addEventListener('mouseup', (e) => {MOUSE.down = false;} );
 	canvas.addEventListener('mouseleave', (e) => {MOUSE.down = false;} );
 	canvas.addEventListener('wheel', (e) => {
-		PIXEL_SIZE += e.deltaY/100;
-		PIXEL_SIZE = Math.min(Math.max(PIXEL_SIZE, 10), 50);
+		SETTINGS.pixel_size += e.deltaY/100;
+		SETTINGS.pixel_size = Math.min(Math.max(SETTINGS.pixel_size, 10), 50);
 	});
 
 	currentImage = new Image();
@@ -58,6 +59,9 @@ async function setup(){
     ctx.drawImage(currentImage, 0, 0, currentImage.width, currentImage.height);
 	await sleep(100);
 	var pixels = ctx.getImageData(0, 0, currentImage.width, currentImage.height).data;
+    
+    SETTINGS.offset.x = canvas.width/2 - SETTINGS.pixel_size*currentImage.width/2;
+    SETTINGS.offset.y = canvas.height/2 - SETTINGS.pixel_size*currentImage.height/2;
 
 	agents = [];
 
@@ -86,7 +90,9 @@ async function setup(){
 class Agent{
 	constructor(_rx, _ry, _c){
         this.imagePos = new Vector2D(_rx, _ry);
-		this.restPos = new Vector2D(_rx * PIXEL_SIZE, _ry*PIXEL_SIZE);
+		this.restPos = new Vector2D(
+            _rx * SETTINGS.pixel_size + SETTINGS.offset.x, 
+            _ry*SETTINGS.pixel_size + SETTINGS.offset.y);
         this.pos = new Vector2D(this.restPos.x, this.restPos.y);
         this.color = _c;
         this.hasReachedRest = true;
@@ -116,51 +122,13 @@ class Agent{
 			this.pos = this.restPos.copy();
             this.hasReachedRest = true;
 			this.vel = new Vector2D(0,0);
-		}
-
-		return;
-        
-        var move = {x : 0, y : 0};
-        
-        /*if(this.restPos.y > this.pos.y)
-            move.y = Math.min(this.restPos.y - this.pos.y, this.speed);
-        else if(this.restPos.y < this.pos.y)
-            move.y = Math.max(this.restPos.y - this.pos.y, -this.speed);
-
-		if(this.restPos.x > this.pos.x)
-            move.x = Math.min(this.restPos.x - this.pos.x, this.speed);
-        else if(this.restPos.x < this.pos.x)
-            move.x = Math.max(this.restPos.x - this.pos.x, -this.speed);
-
-		this.pos.x += move.x;
-		this.pos.y += move.y;
-
-		if(this.restPos.x == this.pos.x && this.restPos.y == this.pos.y){
-			this.hasReachedRest = true;
-		}*/
-        
-        var v1 = {x : this.restPos.x - this.pos.x, y : this.restPos.y - this.pos.y};
-        var mag = Math.sqrt(v1.x*v1.x + v1.y*v1.y);
-        
-        var m = Math.min(mag, this.speed);
-        
-        move.x = m*v1.x/mag;
-        move.y = m*v1.y/mag;
-        
-        this.pos.x += move.x;
-        this.pos.y += move.y;
-        
-        if(mag < 1){
-            this.pos.x = this.restPos.x;
-            this.pos.y = this.restPos.y;
-            this.hasReachedRest = true;
         }
 	}
 	render(_ctx){
 		_ctx.fillStyle = this.color;
         _ctx.beginPath();
 		//ctx.arc(this.pos.x, this.pos.y, 10, 0, Math.PI*2);
-		_ctx.rect(this.pos.x+1, this.pos.y+1,PIXEL_SIZE-2,PIXEL_SIZE-2);
+		_ctx.rect(this.pos.x+1, this.pos.y+1,SETTINGS.pixel_size-2,SETTINGS.pixel_size-2);
 		_ctx.fill();
 	}
 }

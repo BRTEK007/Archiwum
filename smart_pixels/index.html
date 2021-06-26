@@ -20,17 +20,18 @@
 		<div>force method: </div>
 		<select id="input_FF" onchange="DOM_FF_change(this.value)">
 			<option value="LINEAR">PUSH</option>
-            <option value="LINEAR">PULL 1</option>
+            <option selected value="LINEAR">PULL 1</option>
             <option value="QUADRATIC">PULL 2</option>
           </select>
-		  <div>pixelType: </div>
+		  <div>shape: </div>
 		  <select id="input_FF" onchange="DOM_FF_change(this.value)">
 			<option value="LINEAR">RECTANGLE</option>
-            <option value="LINEAR">RECTANGLE 2</option>
             <option value="QUADRATIC">CIRCLE</option>
           </select>
 		<div>background: </div>
-		<input type="color" id="favcolor" name="favcolor" value="#ff0000">
+		<input type="color" id="favcolor" name="favcolor" value="#000000">
+        <div>space between: </div>
+		<input type="checkbox" checked>
 	</div>
 </body>
 </html>
