@@ -1,37 +1,42 @@
 ﻿<!DOCTYPE HTML>
 <html lang="en">
 <head>
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-	<meta name="google" content="notranslate">
-	
-	<script src="script.js"></script>
-	<link rel="stylesheet" type="text/css" href="theme.css">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="google" content="notranslate">
+
+    <script src="script.js"></script>
+    <link rel="stylesheet" type="text/css" href="theme.css">
 </head>
 
 <body onload="setup()">
-	<canvas id = 'myCanvas' ></canvas>
-	<div id="menuDiv">
-		<div>image:</div>
-		<button>PREVIOUS</button>
-		<button>NEXT</button>
-		<button>RANDOM</button>
-		<button>MOVE & SCALE</button>
-		<div>force method: </div>
-		<select id="input_FF" onchange="DOM_FF_change(this.value)">
-			<option value="LINEAR">PUSH</option>
-            <option selected value="LINEAR">PULL 1</option>
-            <option value="QUADRATIC">PULL 2</option>
-          </select>
-		  <div>shape: </div>
-		  <select id="input_FF" onchange="DOM_FF_change(this.value)">
-			<option value="LINEAR">RECTANGLE</option>
-            <option value="QUADRATIC">CIRCLE</option>
-          </select>
-		<div>background: </div>
-		<input type="color" id="favcolor" name="favcolor" value="#000000">
-        <div>space between: </div>
-		<input type="checkbox" checked>
-	</div>
-</body>
-</html>
+    <canvas id='myCanvas'></canvas>
+    <div id="menuDiv">
+        <div id="menu1" class="hidden">
+            <div>image:</div>
+            <button>PREVIOUS</button>
+            <button>NEXT</button>
+            <button>RANDOM</button>
+            <button>MOVE & SCALE</button>
+            <div>force method: </div>
+            <select id="input_FF" onchange="DOM_FF_change(this.value)">
+                <option value="LINEAR">PUSH</option>
+                <option selected value="LINEAR">PULL 1</option>
+                <option value="QUADRATIC">PULL 2</option>
+            </select>
+            <div>shape: </div>
+            <select id="input_FF" onchange="DOM_FF_change(this.value)">
+                <option value="LINEAR">RECTANGLE</option>
+                <option value="QUADRATIC">CIRCLE</option>
+            </select>
+            <div>background: </div>
+            <input type="color" id="favcolor" name="favcolor" value="#000000">
+            <div>space between: </div>
+            <input type="checkbox" checked>
+        </div>
+        <div id = "menu2">
+            <div>LMB to place, wheel to scale</div>
+            <button>DONE</button><button>CANCEL</button>
+        </div>
+    </div>
+</body></html>

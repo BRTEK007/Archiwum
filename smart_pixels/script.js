@@ -100,16 +100,6 @@ class Agent{
         
 		this.vel = new Vector2D(0,0);
 		this.drag = 0.9;
-        /*var v1 = {x : this.restPos.x - this.pos.x, y : this.restPos.y - this.pos.y};
-        var mag = Math.sqrt(v1.x*v1.x + v1.y*v1.y);
-        this.speed = mag/60;*/
-	}
-	teleport(_x, _y){
-		this.pos = new Vector2D(_x, _y);
-		this.hasReachedRest = false;
-		/*var v1 = {x : this.restPos.x - this.pos.x, y : this.restPos.y - this.pos.y};
-        var mag = Math.sqrt(v1.x*v1.x + v1.y*v1.y);
-        this.speed = mag/60;*/
 	}
 	update(){
         if(this.hasReachedRest) return;
@@ -180,7 +170,6 @@ function applyForceToAgents(){
 function forceFunction1(_a, _v){_a.vel = _a.vel.add(_v.unit().mult(2000/(_v.mag_sqr())));}
 function forceFunction2(_a, _v){_a.vel = _a.vel.sub(_v.unit().mult(2));}
 function forceFunction3(_a, _v){_a.vel = _a.vel.sub(_v.mult(0.005));}
-
 
 function dragElement(elmnt) {
 	var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
