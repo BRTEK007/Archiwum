@@ -10,33 +10,18 @@
 </head>
 
 <body onload="setup()">
-    <canvas id='myCanvas'></canvas>
+    <canvas oncontextmenu = "return false;" id='myCanvas'></canvas>
     <div id="menuDiv">
-        <div id="menu1" class="hidden">
             <div>image:</div>
-            <button>PREVIOUS</button>
-            <button>NEXT</button>
-            <button>RANDOM</button>
-            <button>MOVE & SCALE</button>
+            <button onclick = "DOM_change_image(-1)">PREVIOUS</button>
+            <button onclick = "DOM_change_image(1)">NEXT</button>
             <div>force method: </div>
-            <select id="input_FF" onchange="DOM_FF_change(this.value)">
-                <option value="LINEAR">PUSH</option>
-                <option selected value="LINEAR">PULL 1</option>
-                <option value="QUADRATIC">PULL 2</option>
+            <select id="input_FF" onchange="DOM_change_force(this.value)">
+                <option value="1">PUSH</option>
+                <option selected value="2">PULL 1</option>
+                <option value="3">PULL 2</option>
             </select>
-            <div>shape: </div>
-            <select id="input_FF" onchange="DOM_FF_change(this.value)">
-                <option value="LINEAR">RECTANGLE</option>
-                <option value="QUADRATIC">CIRCLE</option>
-            </select>
-            <div>background: </div>
-            <input type="color" id="favcolor" name="favcolor" value="#000000">
-            <div>space between: </div>
-            <input type="checkbox" checked>
-        </div>
-        <div id = "menu2">
-            <div>LMB to place, wheel to scale</div>
-            <button>DONE</button><button>CANCEL</button>
-        </div>
+            <br>
+            <a target = "blank" href = "https://opengameart.org/content/32x32-fantasy-tileset">art</a>
     </div>
 </body></html>

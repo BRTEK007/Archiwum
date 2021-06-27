@@ -5,14 +5,6 @@ function rgb(r, g, b){return "rgb("+r+","+g+","+b+")";}
 function frame() {
 	requestAnimationFrame(frame);
     ctx.clearRect(0,0,canvas.width, canvas.height);
-	/*for(let i = 0; i < agents.length; i++){
-		if(MOUSE.down){
-			agents[i].pos.x = agents[i].restPos.x*PIXEL_SIZE + MOUSE.x - PIXEL_SIZE * currentImage.width/2;
-			agents[i].pos.y = agents[i].restPos.y*PIXEL_SIZE + MOUSE.y - PIXEL_SIZE * currentImage.height/2;
-		}
-		agents[i].render(ctx);
-	}
-	return;*/
 	if(MOUSE.down) applyForceToAgents();
 	for(let i = 0; i < agents.length; i++){
         	agents[i].update();
@@ -34,9 +26,37 @@ const SETTINGS = {
     forceFunction: forceFunction2,
     moving_mode: false,
     pixel_size: 20,
-    offset: {x : 0, y : 0}
+    offset: {x : 0, y : 0},
+    loaded_image: 0
 };
-var currentImage;
+
+async function loadAgents(_x){
+    let ctx2 = document.createElement("canvas").getContext('2d');
+    var image = new Image();
+    image.src = "image.gif";
+	await sleep(50);
+    ctx2.drawImage(image, 0, 0, image.width, 32);
+	await sleep(50);
+	var pixels = ctx2.getImageData(_x*32, 0, 32, 32).data;
+    agents = [];
+    for(let y = 0; y < 32; y++){
+		for(let x = 0; x < 32; x++){
+			let id = x + y*32;
+			/*for(let i = 0; i < 4; i++){
+				c += pixels[id*4 + i];
+			}*/
+			let r = pixels[id*4];
+			let g = pixels[id*4+1];
+			let b = pixels[id*4+2];
+			let a = pixels[id*4+3];
+			if(a != 0){
+				let ax = x;
+				let ay = y;
+				agents.push(new Agent(ax,ay, rgb(r,g,b) ));
+			}
+		}
+	}
+}
 
 async function setup(){
 	dragElement(document.getElementById("menuDiv"));
@@ -52,38 +72,13 @@ async function setup(){
 		SETTINGS.pixel_size += e.deltaY/100;
 		SETTINGS.pixel_size = Math.min(Math.max(SETTINGS.pixel_size, 10), 50);
 	});
-
-	currentImage = new Image();
-    currentImage.src = "image4.gif";
-	await sleep(100);
-    ctx.drawImage(currentImage, 0, 0, currentImage.width, currentImage.height);
-	await sleep(100);
-	var pixels = ctx.getImageData(0, 0, currentImage.width, currentImage.height).data;
     
-    SETTINGS.offset.x = canvas.width/2 - SETTINGS.pixel_size*currentImage.width/2;
-    SETTINGS.offset.y = canvas.height/2 - SETTINGS.pixel_size*currentImage.height/2;
+    SETTINGS.offset.x = canvas.width/2 - SETTINGS.pixel_size*32/2;
+    SETTINGS.offset.y = canvas.height/2 - SETTINGS.pixel_size*32/2;
 
-	agents = [];
-
-	for(let y = 0; y < currentImage.height; y++){
-		for(let x = 0; x < currentImage.width; x++){
-			let id = x + y*currentImage.width;
-			/*for(let i = 0; i < 4; i++){
-				c += pixels[id*4 + i];
-			}*/
-			let r = pixels[id*4];
-			let g = pixels[id*4+1];
-			let b = pixels[id*4+2];
-			let a = pixels[id*4+3];
-			if(a != 0){
-				let ax = x;
-				let ay = y;
-				agents.push(new Agent(ax,ay, rgb(r,g,b) ));
-			}
-		}
-	}
-	
-
+    SETTINGS.loaded_image = Math.floor(Math.random() * 7);
+    await loadAgents(SETTINGS.loaded_image);
+    
 	requestAnimationFrame(frame);
 }
 
@@ -118,7 +113,7 @@ class Agent{
 		_ctx.fillStyle = this.color;
         _ctx.beginPath();
 		//ctx.arc(this.pos.x, this.pos.y, 10, 0, Math.PI*2);
-		_ctx.rect(this.pos.x+1, this.pos.y+1,SETTINGS.pixel_size-2,SETTINGS.pixel_size-2);
+		_ctx.rect(this.pos.x, this.pos.y,SETTINGS.pixel_size,SETTINGS.pixel_size);
 		_ctx.fill();
 	}
 }
@@ -206,3 +201,18 @@ function dragElement(elmnt) {
 		document.onmousemove = null;
 	}
   }
+
+async function DOM_change_image(_d){
+    SETTINGS.loaded_image += parseInt(_d);
+    if(SETTINGS.loaded_image > 7) SETTINGS.loaded_image = 0;
+    else if(SETTINGS.loaded_image < 0) SETTINGS.loaded_image = 7;
+    await loadAgents(SETTINGS.loaded_image);
+}
+
+function DOM_change_force(_n){
+    switch(parseInt(_n)){
+        case 1: SETTINGS.forceFunction = forceFunction1; break;
+        case 2: SETTINGS.forceFunction = forceFunction2; break;
+        case 3: SETTINGS.forceFunction = forceFunction3; break;
+    }
+}

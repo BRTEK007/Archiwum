@@ -1,5 +1,5 @@
 body{
-	background-color: black;
+	background-color: #660000;
     font-family: consolas;
     overflow: hidden;
 	height: 100%;
@@ -32,7 +32,9 @@ canvas{
     right: 0;
     top: 0;
 }
-
+a{
+    color: #6666FF;
+}
 #menuDiv div{
     color: white;
     margin: 2px;
