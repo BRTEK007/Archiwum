@@ -21,15 +21,13 @@ canvas{
 
 #menuDiv{
     position: absolute;
-    width: 250px;
+    width: auto;
     height: auto;
     padding: 10px;
-    /*text-align: center;*/
+    text-align: center;
     background-color: black;
     border: 1px solid white;
-    /*opacity: 0.8;*/
-    cursor: move;
-    right: 0;
+    left: 0;
     top: 0;
 }
 a{
@@ -38,10 +36,12 @@ a{
 #menuDiv div{
     color: white;
     margin: 2px;
+    display: inline-block;
 }
 
 #menuDiv button, input, select{
     margin: 2px;
+    display: inline-block;
 }
 
 .hidden{
