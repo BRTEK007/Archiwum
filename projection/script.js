@@ -88,7 +88,7 @@ var ctx;
 var prism;
 const SETTINGS = {
     axis: true,
-    triangles: false,
+    triangles: true,
     FOV: 50,
     verticies: 4,
     spike: false,
@@ -171,6 +171,27 @@ class Prism {
     }
 }
 
+function getTrianglesFromPolygon(_v){
+    var triangles = [];
+    var new_verticies = [];
+    var n = 0;
+    while (n + 2 <= _v.length) {
+            triangles.push(
+                new Triangle(
+                    _v[n],
+                    _v[n + 1],
+                    _v[n + 2 >= _v.length ? 0 : n + 2]
+                )
+            );
+        new_verticies.push(_v[n + 2 >= _v.length ? 0 : n + 2]);
+        n += 2;
+    }
+    if(_v.length % 2 == 1) new_verticies.push(_v[0]);
+    if(new_verticies.length > 2) 
+        return triangles.concat(getTrianglesFromPolygon(new_verticies));
+    return triangles;
+}
+
 function createPrism(_n, _spike) {
     var verticies = [];
     var lines = [];
@@ -203,22 +224,6 @@ function createPrism(_n, _spike) {
         }
     } else {
         for (let i = 0; i < _n; i++) {
-            //bottom
-            triangles.push(
-                new Triangle(
-                    verticies[i],
-                    new Vector3(0, Math.SQRT2 / 2, 0),
-                    verticies[i + 1 >= _n ? 0 : i + 1]
-                )
-            );
-            //top
-            triangles.push(
-                new Triangle(
-                    verticies[i + _n],
-                    new Vector3(0, -Math.SQRT2 / 2, 0),
-                    verticies[i + 1 >= _n ? _n : i + 1 + _n]
-                )
-            );
             //side 1
             triangles.push(
                 new Triangle(
@@ -236,6 +241,8 @@ function createPrism(_n, _spike) {
                 )
             );
         }
+        triangles = triangles.concat(getTrianglesFromPolygon(verticies.splice(0, _n)));
+        triangles = triangles.concat(getTrianglesFromPolygon(verticies));
     }
 
 
