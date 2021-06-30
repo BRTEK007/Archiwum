@@ -9,6 +9,12 @@ class Vector3 {
     add(_v) {
         return new Vector3(this.x + _v.x, this.y + _v.y, this.z + _v.z);
     }
+    sub(_v) {
+        return new Vector3(this.x - _v.x, this.y - _v.y, this.z - _v.z);
+    }
+    dot(_v){
+        return this.x*_v.x + this.y*_v.y + this.z*_v.z;
+    }
 }
 
 class Vector2 {
@@ -22,9 +28,29 @@ class Triangle {
     constructor(_p1, _p2, _p3) {
         this.points = [_p1, _p2, _p3];
         this.avg_z = null;
+        this.normal = null;
+        this.invertedNormal = false;
     }
     calculateAvgZ() {
         this.avg_z = (this.points[0].z + this.points[1].z + this.points[2].z) / 3;
+    }
+    calculateNormal() {
+        var v1, v2;
+        if (this.invertedNormal) {
+            v1 = this.points[2].sub(this.points[0]);
+            v2 = this.points[1].sub(this.points[0]);
+        } else {
+            v1 = this.points[1].sub(this.points[0]);
+            v2 = this.points[2].sub(this.points[0]);
+        }
+        this.normal = new Vector3(
+            v1.y * v2.z - v1.z * v2.y,
+            v1.z * v2.x - v1.x * v2.z,
+            v1.x * v2.y - v1.y * v2.x
+        );
+        this.normal.x *= 0.1;
+        this.normal.y *= 0.1;
+        this.normal.z *= 0.1;
     }
 }
 
@@ -44,9 +70,9 @@ function frame() {
 }
 
 function projectToScreen(_p) {
-    var vx = _p.x * -eye_z / (_p.z - eye_z);
+    var vx = _p.x * -eye.z / (_p.z - eye.z);
     var sx = canvas.width / 2 + vx * canvas.width / 2;
-    var vy = _p.y * -eye_z / (_p.z - eye_z);
+    var vy = _p.y * -eye.z / (_p.z - eye.z);
     var sy = canvas.height / 2 + vy * canvas.width / 2;
     return new Vector2(sx, sy);
 }
@@ -94,7 +120,7 @@ const SETTINGS = {
     spike: false,
     rotation: new Vector3(0.0, 0.01, 0.0)
 };
-var eye_z = -1 / Math.tan(radians(SETTINGS.FOV / 2));
+var eye = new Vector3(0, 0, -1 / Math.tan(radians(SETTINGS.FOV / 2)));
 
 class Prism {
     constructor(_v, _l, _t) {
@@ -111,10 +137,9 @@ class Prism {
 
         if (SETTINGS.triangles) {
             ctx.fillStyle = "yellow";
-            ctx.strokeStyle = 'red';
             ctx.lineWidth = 2;
 
-            var triangles_sorted = new Array(this.triangles.length);
+            var triangles_sorted = [];
 
             for (let i = 0; i < this.triangles.length; i++) {
                 var points = new Array(3);
@@ -125,8 +150,15 @@ class Prism {
                     rv = rv.add(this.pos);
                     points[j] = rv;
                 }
-                triangles_sorted[i] = new Triangle(points[0], points[1], points[2]);
-                triangles_sorted[i].calculateAvgZ();
+                var t1 = new Triangle(points[0], points[1], points[2]);
+                t1.invertedNormal = this.triangles[i].invertedNormal;
+                t1.calculateNormal();
+
+                
+                if(t1.points[0].sub(eye).dot(t1.normal) <= 0){
+                    triangles_sorted.push(t1);
+                    t1.calculateAvgZ();
+                }
             }
 
             triangles_sorted.sort(zSort);
@@ -136,6 +168,7 @@ class Prism {
                 for (let j = 0; j < 3; j++) {
                     points[j] = projectToScreen(triangles_sorted[i].points[j]);
                 }
+                ctx.strokeStyle = 'red';
                 ctx.beginPath();
                 ctx.moveTo(points[0].x, points[0].y);
                 ctx.lineTo(points[1].x, points[1].y);
@@ -143,6 +176,14 @@ class Prism {
                 ctx.closePath();
                 ctx.stroke();
                 ctx.fill();
+
+                /*let np = projectToScreen(triangles_sorted[i].normal.add(triangles_sorted[i].points[0]));
+                ctx.strokeStyle = 'green';
+                ctx.beginPath();
+                ctx.moveTo(points[0].x, points[0].y);
+                ctx.lineTo(np.x, np.y);
+                ctx.closePath();
+                ctx.stroke();*/
             }
         } else {
             ctx.strokeStyle = 'white';
@@ -171,23 +212,23 @@ class Prism {
     }
 }
 
-function getTrianglesFromPolygon(_v){
+function getTrianglesFromPolygon(_v) {
     var triangles = [];
     var new_verticies = [];
     var n = 0;
     while (n + 2 <= _v.length) {
-            triangles.push(
-                new Triangle(
-                    _v[n],
-                    _v[n + 1],
-                    _v[n + 2 >= _v.length ? 0 : n + 2]
-                )
-            );
+        triangles.push(
+            new Triangle(
+                _v[n],
+                _v[n + 1],
+                _v[n + 2 >= _v.length ? 0 : n + 2]
+            )
+        );
         new_verticies.push(_v[n + 2 >= _v.length ? 0 : n + 2]);
         n += 2;
     }
-    if(_v.length % 2 == 1) new_verticies.push(_v[0]);
-    if(new_verticies.length > 2) 
+    if (_v.length % 2 == 1) new_verticies.push(_v[0]);
+    if (new_verticies.length > 2)
         return triangles.concat(getTrianglesFromPolygon(new_verticies));
     return triangles;
 }
@@ -233,15 +274,17 @@ function createPrism(_n, _spike) {
                 )
             );
             //side 2
-            triangles.push(
-                new Triangle(
-                    verticies[i + _n],
-                    verticies[i + 1 >= _n ? _n : i + 1 + _n],
-                    verticies[i + 1 >= _n ? 0 : i + 1],
-                )
+            let t2 = new Triangle(
+                verticies[i + _n],
+                verticies[i + 1 >= _n ? _n : i + 1 + _n],
+                verticies[i + 1 >= _n ? 0 : i + 1],
             );
+            t2.invertedNormal = true;
+            triangles.push(t2);
         }
-        triangles = triangles.concat(getTrianglesFromPolygon(verticies.splice(0, _n)));
+        let t2 = getTrianglesFromPolygon(verticies.splice(0, _n));
+        for (let i = 0; i < t2.length; i++) t2[i].invertedNormal = true;
+        triangles = triangles.concat(t2);
         triangles = triangles.concat(getTrianglesFromPolygon(verticies));
     }
 
@@ -263,7 +306,7 @@ function setup() {
 
 function DOM_change_fov(_v) {
     SETTINGS.FOV = parseInt(_v);
-    eye_z = -1 / Math.tan(radians(SETTINGS.FOV / 2));
+    eye.z = -1 / Math.tan(radians(SETTINGS.FOV / 2));
 }
 
 function DOM_change_verticies(_v) {
