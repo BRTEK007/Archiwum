@@ -12,8 +12,8 @@ class Vector3 {
     sub(_v) {
         return new Vector3(this.x - _v.x, this.y - _v.y, this.z - _v.z);
     }
-    dot(_v){
-        return this.x*_v.x + this.y*_v.y + this.z*_v.z;
+    dot(_v) {
+        return this.x * _v.x + this.y * _v.y + this.z * _v.z;
     }
 }
 
@@ -29,20 +29,13 @@ class Triangle {
         this.points = [_p1, _p2, _p3];
         this.avg_z = null;
         this.normal = null;
-        this.invertedNormal = false;
     }
     calculateAvgZ() {
         this.avg_z = (this.points[0].z + this.points[1].z + this.points[2].z) / 3;
     }
     calculateNormal() {
-        var v1, v2;
-        if (this.invertedNormal) {
-            v1 = this.points[2].sub(this.points[0]);
-            v2 = this.points[1].sub(this.points[0]);
-        } else {
-            v1 = this.points[1].sub(this.points[0]);
-            v2 = this.points[2].sub(this.points[0]);
-        }
+        var v1 = this.points[1].sub(this.points[0]);
+        var v2 = this.points[2].sub(this.points[0]);
         this.normal = new Vector3(
             v1.y * v2.z - v1.z * v2.y,
             v1.z * v2.x - v1.x * v2.z,
@@ -65,14 +58,18 @@ function zSort(a, b) {
 function frame() {
     requestAnimationFrame(frame);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    camera.update();
     prism.update();
     prism.render();
 }
 
 function projectToScreen(_p) {
-    var vx = _p.x * -eye.z / (_p.z - eye.z);
+    var d = camera.transfomedPoint(_p);
+    var vx = (eye.z*d.x)/d.z + eye.x;
+    //vx = Math.max(Math.min(vx, 1), -1);
     var sx = canvas.width / 2 + vx * canvas.width / 2;
-    var vy = _p.y * -eye.z / (_p.z - eye.z);
+    var vy = (eye.z*d.y)/d.z + eye.y;
+    //vy = Math.max(Math.min(vy, 1), -1);
     var sy = canvas.height / 2 + vy * canvas.width / 2;
     return new Vector2(sx, sy);
 }
@@ -101,6 +98,14 @@ function Rz(_a) {
     ];
 }
 
+function multiplyMatrices(_m1, _m2,_m3){
+    return [
+        [_m1[0][0]*_m2[0][0]*_m3[0][0], _m1[1][0]*_m2[1][0]*_m3[1][0], _m1[2][0]*_m2[2][0]*_m3[2][0]],
+        [_m1[0][1]*_m2[0][1]*_m3[0][1], _m1[1][1]*_m2[1][1]*_m3[1][1], _m1[2][1]*_m2[2][1]*_m3[2][1]],
+        [_m1[0][2]*_m2[0][2]*_m3[0][2], _m1[1][2]*_m2[1][2]*_m3[1][2], _m1[2][2]*_m2[2][2]*_m3[2][2]]
+    ];
+}
+
 function multiplyVectorWithMatrix(_v, _m) {
     return new Vector3(
         _v.x * _m[0][0] + _v.y * _m[0][1] + _v.z * _m[0][2],
@@ -114,13 +119,38 @@ var ctx;
 var prism;
 const SETTINGS = {
     axis: true,
-    triangles: true,
+    wireframe: false,
     FOV: 50,
     verticies: 4,
     spike: false,
     rotation: new Vector3(0.0, 0.01, 0.0)
 };
-var eye = new Vector3(0, 0, -1 / Math.tan(radians(SETTINGS.FOV / 2)));
+var eye = new Vector3(0.0, 0.0, -1 / Math.tan(radians(SETTINGS.FOV / 2)));
+var camera;
+
+class Camera{
+    constructor(){
+        this.pos = new Vector3(0.0,0.0,0.0);
+        this.rotation = new Vector3(0.0, 0.0, 0.0);
+    }
+    transfomedPoint(_p){
+        let v = _p.sub(this.pos);
+        let cx = Math.cos(this.rotation.x);
+        let cy = Math.cos(this.rotation.y);
+        let cz = Math.cos(this.rotation.z);
+        let sx = Math.sin(this.rotation.x);
+        let sy = Math.sin(this.rotation.y);
+        let sz = Math.sin(this.rotation.z);
+        let dx = cy * (sz * v.z + cz * v.x) - sy * v.z;
+        let dy = sx * (cy * v.z + sy * (sz * v.y + cz * v.x)) + cx * (cz * v.y + sz * v.x);
+        let dz = cx * (cy * v.z + sy * (sz * v.y + cz * v.x)) - sx * (cz * v.y + sz * v.x);
+        return new Vector3(dx, dy, dz);
+    }
+    
+    update(){
+            
+    }
+}
 
 class Prism {
     constructor(_v, _l, _t) {
@@ -134,9 +164,11 @@ class Prism {
         var rx = Rx(this.rotation.x);
         var ry = Ry(this.rotation.y);
         var rz = Rz(this.rotation.z);
+        //var m = multiplyMatrices(rx, ry, rz);
 
-        if (SETTINGS.triangles) {
-            ctx.fillStyle = "yellow";
+        if (!SETTINGS.wireframe) {
+            ctx.fillStyle = "#555555";
+            ctx.strokeStyle = 'white';
             ctx.lineWidth = 2;
 
             var triangles_sorted = [];
@@ -151,11 +183,10 @@ class Prism {
                     points[j] = rv;
                 }
                 var t1 = new Triangle(points[0], points[1], points[2]);
-                t1.invertedNormal = this.triangles[i].invertedNormal;
                 t1.calculateNormal();
 
-                
-                if(t1.points[0].sub(eye).dot(t1.normal) <= 0){
+
+                if (t1.points[0].sub(camera.pos).dot(t1.normal) <= 0) {
                     triangles_sorted.push(t1);
                     t1.calculateAvgZ();
                 }
@@ -168,22 +199,13 @@ class Prism {
                 for (let j = 0; j < 3; j++) {
                     points[j] = projectToScreen(triangles_sorted[i].points[j]);
                 }
-                ctx.strokeStyle = 'red';
                 ctx.beginPath();
                 ctx.moveTo(points[0].x, points[0].y);
                 ctx.lineTo(points[1].x, points[1].y);
                 ctx.lineTo(points[2].x, points[2].y);
                 ctx.closePath();
-                ctx.stroke();
                 ctx.fill();
-
-                /*let np = projectToScreen(triangles_sorted[i].normal.add(triangles_sorted[i].points[0]));
-                ctx.strokeStyle = 'green';
-                ctx.beginPath();
-                ctx.moveTo(points[0].x, points[0].y);
-                ctx.lineTo(np.x, np.y);
-                ctx.closePath();
-                ctx.stroke();*/
+                ctx.stroke();
             }
         } else {
             ctx.strokeStyle = 'white';
@@ -212,15 +234,15 @@ class Prism {
     }
 }
 
-function getTrianglesFromPolygon(_v) {
+function getTrianglesFromPolygon(_v, _inv) {
     var triangles = [];
     var new_verticies = [];
     var n = 0;
     while (n + 2 <= _v.length) {
         triangles.push(
             new Triangle(
-                _v[n],
-                _v[n + 1],
+                _v[_inv ? n+1 : n],
+                _v[_inv ? n : n + 1],
                 _v[n + 2 >= _v.length ? 0 : n + 2]
             )
         );
@@ -229,28 +251,28 @@ function getTrianglesFromPolygon(_v) {
     }
     if (_v.length % 2 == 1) new_verticies.push(_v[0]);
     if (new_verticies.length > 2)
-        return triangles.concat(getTrianglesFromPolygon(new_verticies));
+        return triangles.concat(getTrianglesFromPolygon(new_verticies, _inv));
     return triangles;
 }
 
-function createPrism(_n, _spike) {
+function createPrism(_n, _spike, _wireframe) {
     var verticies = [];
     var lines = [];
     var triangles = [];
     var a0 = (Math.PI * 2) / _n;
     for (let i = 0; i < _n; i++) {
         let a = a0 * i;
-        verticies.push(new Vector3(Math.cos(a), Math.SQRT2 / 2, Math.sin(a)));
+        verticies.push(new Vector3(Math.cos(a), Math.SQRT2/2, Math.sin(a)));
     }
     if (_spike) {
-        verticies.push(new Vector3(0, -Math.SQRT1_2 / 2, 0));
+        verticies.push(new Vector3(0, -Math.SQRT2/2 / 2, 0));
     } else {
         for (let i = 0; i < _n; i++) {
             let a = a0 * i;
-            verticies.push(new Vector3(Math.cos(a), -Math.SQRT2 / 2, Math.sin(a)));
+            verticies.push(new Vector3(Math.cos(a), -Math.SQRT2/2, Math.sin(a)));
         }
     }
-    if (!SETTINGS.triangles) {
+    if (_wireframe) {
         for (let i = 0; i < _n; i++) {
             if (_spike) {
                 lines.push([i, _n]);
@@ -264,28 +286,38 @@ function createPrism(_n, _spike) {
             }
         }
     } else {
-        for (let i = 0; i < _n; i++) {
-            //side 1
-            triangles.push(
-                new Triangle(
-                    verticies[i],
-                    verticies[i + 1 >= _n ? 0 : i + 1],
-                    verticies[i + _n]
-                )
-            );
-            //side 2
-            let t2 = new Triangle(
-                verticies[i + _n],
-                verticies[i + 1 >= _n ? _n : i + 1 + _n],
-                verticies[i + 1 >= _n ? 0 : i + 1],
-            );
-            t2.invertedNormal = true;
-            triangles.push(t2);
+        if (SETTINGS.spike) {
+            for (let i = 0; i < _n; i++) {
+                //side 1
+                triangles.push(
+                    new Triangle(
+                        verticies[i],
+                        verticies[i + 1 >= _n ? 0 : i + 1],
+                        new Vector3(0,-Math.SQRT2/2,0)
+                        )
+                );
+            }
+            triangles = triangles.concat(getTrianglesFromPolygon(verticies.splice(0, _n), true));
+        } else {
+            for (let i = 0; i < _n; i++) {
+                //side 1
+                triangles.push(
+                    new Triangle(
+                        verticies[i],
+                        verticies[i + 1 >= _n ? 0 : i + 1],
+                        verticies[i + _n]
+                    )
+                );
+                //side 2
+                triangles.push(new Triangle(
+                    verticies[i + 1 >= _n ? _n : i + 1 + _n],
+                    verticies[i + _n],
+                    verticies[i + 1 >= _n ? 0 : i + 1]
+                ));
+            }
+            triangles = triangles.concat(getTrianglesFromPolygon(verticies.splice(0, _n), true));
+            triangles = triangles.concat(getTrianglesFromPolygon(verticies, false));
         }
-        let t2 = getTrianglesFromPolygon(verticies.splice(0, _n));
-        for (let i = 0; i < t2.length; i++) t2[i].invertedNormal = true;
-        triangles = triangles.concat(t2);
-        triangles = triangles.concat(getTrianglesFromPolygon(verticies));
     }
 
 
@@ -293,13 +325,15 @@ function createPrism(_n, _spike) {
     return p;
 }
 
+
 function setup() {
     canvas = document.getElementById('myCanvas');
     canvas.width = canvas.getBoundingClientRect().width; //1563
     canvas.height = canvas.getBoundingClientRect().height; //768
     ctx = canvas.getContext("2d");
 
-    prism = createPrism(SETTINGS.verticies, SETTINGS.spike);
+    prism = createPrism(SETTINGS.verticies, SETTINGS.spike, SETTINGS.wireframe);
+    camera = new Camera();
 
     requestAnimationFrame(frame);
 }
@@ -311,12 +345,17 @@ function DOM_change_fov(_v) {
 
 function DOM_change_verticies(_v) {
     SETTINGS.verticies = parseInt(_v);
-    prism = createPrism(SETTINGS.verticies, SETTINGS.spike);
+    prism = createPrism(SETTINGS.verticies, SETTINGS.spike, SETTINGS.wireframe);
 }
 
 function DOM_change_spike(_v) {
     SETTINGS.spike = _v;
-    prism = createPrism(SETTINGS.verticies, SETTINGS.spike);
+    prism = createPrism(SETTINGS.verticies, SETTINGS.spike, SETTINGS.wireframe);
+}
+
+function DOM_change_wireframe(_v) {
+    SETTINGS.wireframe = _v;
+    prism = createPrism(SETTINGS.verticies, SETTINGS.spike, SETTINGS.wireframe);
 }
 
 function DOM_change_rotation(_t, _v) {
