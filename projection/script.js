@@ -15,6 +15,13 @@ class Vector3 {
     dot(_v) {
         return this.x * _v.x + this.y * _v.y + this.z * _v.z;
     }
+    mag() {
+        return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
+    }
+    unit() {
+        let m = this.mag();
+        return new Vector3(this.x / m, this.y / m, this.z / m);
+    }
 }
 
 class Vector2 {
@@ -53,22 +60,29 @@ function renderTriangle(_t) {
     for (let i = 0; i < 3; i++) {
         _t.points[i] = camera.transfomedPoint(_t.points[i]);
         points[i] = camera.projectPointToScreen(_t.points[i]);
-        if (_t.points[i].z < camera.pos.z){
+        if (_t.points[i].z < camera.pos.z) {
             //_t.points[i].z = camera.pos.z + 0.1;
             behindPoints.push(_t.points[i]);
         }
     }
     //console.log(behindPoints.length);
-    if (behindPoints.length == 3) 
+    if (behindPoints.length == 3)
         return;
-    
+
+    _t.calculateNormal();
+    let dp = Math.abs(light.dot(_t.normal.unit()));
+    //console.log(dp)
+
+    //ctx.lineWidth = 1;
+    ctx.fillStyle = rgb(dp * 255, dp * 255, dp * 255);
+    //ctx.strokeStyle = 'black';
     ctx.beginPath();
     ctx.moveTo(points[0].x, points[0].y);
     ctx.lineTo(points[1].x, points[1].y);
     ctx.lineTo(points[2].x, points[2].y);
     ctx.closePath();
     ctx.fill();
-    ctx.stroke();
+    //ctx.stroke();
 }
 
 function radians(_a) {
@@ -77,6 +91,10 @@ function radians(_a) {
 
 function zSort(a, b) {
     return b.avg_z - a.avg_z;
+}
+
+function rgb(_r, _g, _b) {
+    return 'rgb(' + _r + ',' + _g + ',' + _b + ')';
 }
 
 function frame() {
@@ -141,6 +159,7 @@ const SETTINGS = {
 };
 var eye = new Vector3(0.0, 0.0, -1 / Math.tan(radians(SETTINGS.FOV / 2)));
 var camera;
+var light = new Vector3(0.0, 0.0, 1);
 
 class Camera {
     constructor() {
@@ -195,10 +214,6 @@ class Prism {
         //var m = multiplyMatrices(rx, ry, rz);
 
         if (!SETTINGS.wireframe) {
-            ctx.fillStyle = "#555555";
-            ctx.strokeStyle = 'white';
-            ctx.lineWidth = 2;
-
             var triangles_sorted = [];
 
             for (let i = 0; i < this.triangles.length; i++) {
