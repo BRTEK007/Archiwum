@@ -22,6 +22,9 @@ class Vector3 {
         let m = this.mag();
         return new Vector3(this.x / m, this.y / m, this.z / m);
     }
+    mult(_a) {
+        return new Vector3(this.x * _a, this.y * _a, this.z * _a);
+    }
 }
 
 class Vector2 {
@@ -71,18 +74,16 @@ function renderTriangle(_t) {
 
     _t.calculateNormal();
     let dp = Math.abs(light.dot(_t.normal.unit()));
-    //console.log(dp)
 
-    //ctx.lineWidth = 1;
+
     ctx.fillStyle = rgb(dp * 255, dp * 255, dp * 255);
-    //ctx.strokeStyle = 'black';
+    ctx.strokeStyle = 'yellow';
     ctx.beginPath();
     ctx.moveTo(points[0].x, points[0].y);
     ctx.lineTo(points[1].x, points[1].y);
     ctx.lineTo(points[2].x, points[2].y);
     ctx.closePath();
     ctx.fill();
-    //ctx.stroke();
 }
 
 function radians(_a) {
@@ -100,7 +101,6 @@ function rgb(_r, _g, _b) {
 function frame() {
     requestAnimationFrame(frame);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    camera.update();
     prism.update();
     prism.render();
 }
@@ -185,17 +185,10 @@ class Camera {
         var vx = -(eye.z * d.x) / d.z + eye.x;
         //vx = Math.max(Math.min(vx, 1), -1);
         var sx = canvas.width / 2 + vx * canvas.width / 2;
-        var vy = (eye.z * d.y) / d.z + eye.y;
+        var vy = -(eye.z * d.y) / d.z + eye.y;
         //vy = Math.max(Math.min(vy, 1), -1);
         var sy = canvas.height / 2 + vy * canvas.width / 2;
         return new Vector2(sx, sy);
-    }
-
-    update() {
-        //this.pos.z += 0.1;
-        //console.log(this.transfomedPoint(prism.pos));
-        //this.rotation.y += 0.01;
-        //console.log(360 * this.rotation.y / (2 * Math.PI));
     }
 }
 
@@ -233,6 +226,8 @@ class Prism {
                     triangles_sorted.push(t1);
                     t1.calculateAvgZ();
                 }
+                //triangles_sorted.push(t1);
+                //t1.calculateAvgZ();
             }
 
             triangles_sorted.sort(zSort);
