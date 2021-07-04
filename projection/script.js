@@ -78,6 +78,7 @@ function renderTriangle(_t) {
 
     _t.calculateNormal();
     let dp = Math.abs(light.dot(_t.normal.unit()));
+    dp = 1;
 
 
     if (SETTINGS.culling) {
@@ -374,41 +375,38 @@ function createSphere() {
     var verticies = [];
     var lines = [];
     var triangles = [];
-    var resolution = 10;
+    var resolution = 20;
     var bA = 2 * Math.PI / resolution;
-    var yLevels = new Array(resolution / 2 + 1);
-    for (let i = 0; i < resolution / 2 + 1; i++) yLevels[i] = Math.sin(0.5 * i * bA);
-    var radiuses = new Array(resolution / 2 + 1);
-    for (let i = 0; i < resolution / 2 + 1; i++) radiuses[i] = Math.cos(0.5 * i * bA);
-    //console.log(radiuses, yLevels);
 
-    for (let row = 0; row < resolution / 2; row++) {
-        var rB = radiuses[row];
-        var rT = radiuses[row + 1];
-        var yB = yLevels[row];
-        var yT = yLevels[row + 1];
+    for (let j = 0; j < resolution; j++) {
+        var rB, rT, yB, yT;
+        rB = Math.sin(0.5 * j * bA);
+        rT = Math.sin(0.5 * (j+1) * bA);
+        yB = Math.cos(0.5 * j * bA) * 1.2;
+        yT = Math.cos(0.5 * (j+1) * bA) * 1.2;
+
         for (let i = 0; i < resolution; i++) {
             var a1 = i * bA;
             var a2 = (i + 1 == resolution) ? 0 : (i + 1) * bA;
             var v1 = new Vector3(
                 Math.sin(a1) * rB,
-                -yB,
+                yB,
                 Math.cos(a1) * rB
             );
             var v2 = new Vector3(
                 Math.sin(a2) * rB,
-                -yB,
+                yB,
                 Math.cos(a2) * rB
             );
             var v3 = new Vector3(
-                v1.x * rT,
-                -yT,
-                v1.z * rT
+                Math.sin(a1) * rT,
+                yT,
+                Math.cos(a1) * rT
             );
             var v4 = new Vector3(
-                v2.x * rT,
-                -yT,
-                v2.z * rT
+                Math.sin(a2) * rT,
+                yT,
+                Math.cos(a2) * rT
             );
             triangles.push(new Triangle(v2, v1, v3));
             triangles.push(new Triangle(v3, v4, v2));

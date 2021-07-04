@@ -13,19 +13,23 @@
 <body onload="setup()">
     <canvas oncontextmenu="return false;" id='myCanvas'></canvas>
     <div id="menuDiv">
-        <div>FOV:</div>
-        <input onchange="DOM_change_fov(this.value)" id="inputF" type="range" min="30" max="70" value="50">
-        <div>verticies:</div>
-        <input onchange="DOM_change_verticies(this.value)" id="inputV" type="range" min="3" max="10" value="4">
-        <div>spike:</div>
-        <input onchange="DOM_change_spike(this.checked)" id="inputS" type="checkbox">
-        <div>wireframe:</div>
-        <input onchange="DOM_change_wireframe(this.checked)" id="inputW" type="checkbox">
-        <div>rotation(x,y,z):</div>
-        <input onchange="DOM_change_rotation('X', this.value)" id="inputX" type="range" min="-0.02" max="0.02" step="0.01" value="0">
-        <input onchange="DOM_change_rotation('Y', this.value)" id="inputY" type="range" min="-0.02" max="0.02" step="0.01" value="0.01">
-        <input onchange="DOM_change_rotation('Z', this.value)" id="inputZ" type="range" min="-0.02" max="0.02" step="0.01" value="0">
+        <select>
+            <option>prism</option>
+            <option>spheroid</option>
+        </select>
+        <div id = "menu1" class = "hidden">
+            <div>FOV:</div>
+            <input onchange="DOM_change_fov(this.value)" id="inputF" type="range" min="30" max="70" value="50">
+            <div>verticies:</div>
+            <input onchange="DOM_change_verticies(this.value)" id="inputV" type="range" min="3" max="10" value="4">
+            <div>spike:</div>
+            <input onchange="DOM_change_spike(this.checked)" id="inputS" type="checkbox">
+            <div>wireframe:</div>
+            <input onchange="DOM_change_wireframe(this.checked)" id="inputW" type="checkbox">
+            <div>rotation(x,y,z):</div>
+            <input onchange="DOM_change_rotation('X', this.value)" id="inputX" type="range" min="-0.02" max="0.02" step="0.01" value="0">
+            <input onchange="DOM_change_rotation('Y', this.value)" id="inputY" type="range" min="-0.02" max="0.02" step="0.01" value="0.01">
+            <input onchange="DOM_change_rotation('Z', this.value)" id="inputZ" type="range" min="-0.02" max="0.02" step="0.01" value="0">
+        </div>
     </div>
-</body>
-
-</html>
+</body></html>
