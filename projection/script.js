@@ -1,4 +1,8 @@
 'use strict';
+//TODO
+//triangles instead of verticies should have indexes of verticies in the verticies list
+//vertiecies list gets rotated and later triangles get formed
+//eliminate and sort triangles, project verticies list and form triangles from original indexes
 
 class Vector3 {
     constructor(_x, _y, _z) {
@@ -76,14 +80,24 @@ function renderTriangle(_t) {
     let dp = Math.abs(light.dot(_t.normal.unit()));
 
 
-    ctx.fillStyle = rgb(dp * 255, dp * 255, dp * 255);
-    ctx.strokeStyle = 'yellow';
-    ctx.beginPath();
-    ctx.moveTo(points[0].x, points[0].y);
-    ctx.lineTo(points[1].x, points[1].y);
-    ctx.lineTo(points[2].x, points[2].y);
-    ctx.closePath();
-    ctx.fill();
+    if (SETTINGS.culling) {
+        ctx.fillStyle = rgb(dp * 255, dp * 255, dp * 255);
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        ctx.lineTo(points[1].x, points[1].y);
+        ctx.lineTo(points[2].x, points[2].y);
+        ctx.closePath();
+        ctx.fill();
+    } else {
+        ctx.strokeStyle = 'white';
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        ctx.lineTo(points[1].x, points[1].y);
+        ctx.lineTo(points[2].x, points[2].y);
+        ctx.closePath();
+        ctx.stroke();
+    }
+
 }
 
 function radians(_a) {
@@ -152,6 +166,7 @@ var prism;
 const SETTINGS = {
     axis: true,
     wireframe: false,
+    culling: true,
     FOV: 50,
     verticies: 4,
     spike: false,
@@ -221,13 +236,15 @@ class Prism {
                 var t1 = new Triangle(points[0], points[1], points[2]);
                 t1.calculateNormal();
 
-
-                if (t1.points[0].sub(camera.pos).dot(t1.normal) <= 0) {
+                if (SETTINGS.culling) {
+                    if (t1.points[0].sub(camera.pos).dot(t1.normal) <= 0) {
+                        triangles_sorted.push(t1);
+                        t1.calculateAvgZ();
+                    }
+                } else {
                     triangles_sorted.push(t1);
                     t1.calculateAvgZ();
                 }
-                //triangles_sorted.push(t1);
-                //t1.calculateAvgZ();
             }
 
             triangles_sorted.sort(zSort);
@@ -353,6 +370,54 @@ function createPrism(_n, _spike, _wireframe) {
     return p;
 }
 
+function createSphere() {
+    var verticies = [];
+    var lines = [];
+    var triangles = [];
+    var resolution = 10;
+    var bA = 2 * Math.PI / resolution;
+    var yLevels = new Array(resolution / 2 + 1);
+    for (let i = 0; i < resolution / 2 + 1; i++) yLevels[i] = Math.sin(0.5 * i * bA);
+    var radiuses = new Array(resolution / 2 + 1);
+    for (let i = 0; i < resolution / 2 + 1; i++) radiuses[i] = Math.cos(0.5 * i * bA);
+    //console.log(radiuses, yLevels);
+
+    for (let row = 0; row < resolution / 2; row++) {
+        var rB = radiuses[row];
+        var rT = radiuses[row + 1];
+        var yB = yLevels[row];
+        var yT = yLevels[row + 1];
+        for (let i = 0; i < resolution; i++) {
+            var a1 = i * bA;
+            var a2 = (i + 1 == resolution) ? 0 : (i + 1) * bA;
+            var v1 = new Vector3(
+                Math.sin(a1) * rB,
+                -yB,
+                Math.cos(a1) * rB
+            );
+            var v2 = new Vector3(
+                Math.sin(a2) * rB,
+                -yB,
+                Math.cos(a2) * rB
+            );
+            var v3 = new Vector3(
+                v1.x * rT,
+                -yT,
+                v1.z * rT
+            );
+            var v4 = new Vector3(
+                v2.x * rT,
+                -yT,
+                v2.z * rT
+            );
+            triangles.push(new Triangle(v2, v1, v3));
+            triangles.push(new Triangle(v3, v4, v2));
+        }
+    }
+    var p = new Prism(verticies, lines, triangles);
+    return p;
+}
+
 function setup() {
     canvas = document.getElementById('myCanvas');
     canvas.width = canvas.getBoundingClientRect().width; //1563
@@ -360,6 +425,7 @@ function setup() {
     ctx = canvas.getContext("2d");
 
     prism = createPrism(SETTINGS.verticies, SETTINGS.spike, SETTINGS.wireframe);
+    //prism = createSphere();
     camera = new Camera();
 
     requestAnimationFrame(frame);
