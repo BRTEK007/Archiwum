@@ -1,7 +1,7 @@
 'use strict';
 //TODO
-//save big as possible polygons, calculate their normal and later form triangles ?
 //torus
+//scaling x, y, z
 
 class Vector3 {
     constructor(_x, _y, _z) {
@@ -407,9 +407,9 @@ function setup() {
     canvas.height = canvas.getBoundingClientRect().height; //768
     ctx = canvas.getContext("2d");
 
-    //prism = createPrism(SETTINGS.verticies, SETTINGS.spike);
+    prism = createPrism(SETTINGS.verticies, SETTINGS.spike);
     //prism = createSphere();
-    loadModel('teapot.obj');
+    //loadModel('sphere.obj');
     camera = new Camera();
 
     requestAnimationFrame(frame);
