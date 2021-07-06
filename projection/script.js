@@ -107,6 +107,7 @@ function rgb(_r, _g, _b) {
 
 function frame() {
     requestAnimationFrame(frame);
+    if(prism == null) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     prism.update();
     prism.render();
@@ -189,10 +190,10 @@ class Camera {
 
     projectPointToScreen(_p) {
         var d = this.transfomedPoint(_p);
-        var vx = -(eye.z * d.x) / d.z + eye.x;
+        var vx = (eye.z * d.x) / d.z + eye.x;
         //vx = Math.max(Math.min(vx, 1), -1);
         var sx = canvas.width / 2 + vx * canvas.width / 2;
-        var vy = -(eye.z * d.y) / d.z + eye.y;
+        var vy = (eye.z * d.y) / d.z + eye.y;
         //vy = Math.max(Math.min(vy, 1), -1);
         var sy = canvas.height / 2 + vy * canvas.width / 2;
         return new Vector2(sx, sy);
@@ -384,16 +385,20 @@ function loadModel(_name) {
                     parseFloat(entry[1]),
                     parseFloat(entry[2]),
                     parseFloat(entry[3])
-                ).mult(-0.5));
+                ));
             } else if (entry[0] == 'f') {
                 triangles.push([
                     parseInt(entry[1]) - 1, parseInt(entry[2]) - 1, parseInt(entry[3]) - 1
                 ]);
             }
         }
-        console.log(verticies, triangles);
         prism = new Prism(verticies, triangles);
     })
+}
+
+function round(_f, _d){
+    let a = Math.pow(10, _d);
+    return Math.round(_f * a) / a;
 }
 
 function setup() {
@@ -402,9 +407,9 @@ function setup() {
     canvas.height = canvas.getBoundingClientRect().height; //768
     ctx = canvas.getContext("2d");
 
-    prism = createPrism(SETTINGS.verticies, SETTINGS.spike);
+    //prism = createPrism(SETTINGS.verticies, SETTINGS.spike);
     //prism = createSphere();
-    //loadModel('teapot.txt');
+    loadModel('teapot.obj');
     camera = new Camera();
 
     requestAnimationFrame(frame);
@@ -448,4 +453,23 @@ function DOM_change_rotation(_t, _v) {
             SETTINGS.rotation.z = parseFloat(_v);
             break;
     }
+}
+
+function DOM_download() {
+    var text = "";
+    for(let i = 0; i < prism.verticies.length; i++)
+        text += "v " + round(prism.verticies[i].x, 6) + ' ' + round(prism.verticies[i].y, 6) + ' ' + round(prism.verticies[i].z, 6) + '\n';
+    for(let i = 0; i < prism.triangles.length; i++)
+        text += "f " + (prism.triangles[i][0]+1) + ' ' + (prism.triangles[i][1]+1) + ' ' + (prism.triangles[i][2]+1) + '\n';
+    //return;
+    var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', 'model.obj');
+
+    element.style.display = 'none';
+    document.body.appendChild(element);
+
+    element.click();
+
+    document.body.removeChild(element);
 }
