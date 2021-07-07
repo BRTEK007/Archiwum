@@ -28,6 +28,9 @@ class Vector3 {
     mult(_a) {
         return new Vector3(this.x * _a, this.y * _a, this.z * _a);
     }
+    multV(_v){
+        return new Vector3(this.x * _v.x, this.y * _v.y, this.z * _v.z);
+    }
 }
 
 class Vector2 {
@@ -107,7 +110,7 @@ function rgb(_r, _g, _b) {
 
 function frame() {
     requestAnimationFrame(frame);
-    if(prism == null) return;
+    if (prism == null) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     prism.update();
     prism.render();
@@ -162,8 +165,10 @@ const SETTINGS = {
     wireframe: false,
     FOV: 50,
     verticies: 4,
+    resolution: 10,
     spike: false,
-    rotation: new Vector3(0.0, 0.01, 0.0)
+    rotation: new Vector3(0.0, 0.01, 0.0),
+    scale: new Vector3(1.0,1.0,1.0)
 };
 var eye = new Vector3(0.0, 0.0, -1 / Math.tan(radians(SETTINGS.FOV / 2)));
 var camera;
@@ -215,7 +220,7 @@ class Prism {
         var verticies2 = new Array(this.verticies.length);
 
         for (let i = 0; i < this.verticies.length; i++) {
-            var rv = multiplyVectorWithMatrix(this.verticies[i], rx);
+            var rv = multiplyVectorWithMatrix(this.verticies[i].multV(SETTINGS.scale), rx);
             rv = multiplyVectorWithMatrix(rv, ry);
             rv = multiplyVectorWithMatrix(rv, rz);
             verticies2[i] = new Vector3(this.pos.x + rv.x, this.pos.y + rv.y, this.pos.z + rv.z);
@@ -319,15 +324,13 @@ function createPrism(_n, _spike) {
         triangles = triangles.concat(getTrianglesFromPolygon(v1, false));
     }
 
-
-
     var p = new Prism(verticies, triangles);
     return p;
 }
 
-function createSphere() {
+function createSphere(_r) {
     var verticies = [];
-    var resolution = 20;
+    var resolution = _r;
     var bA = 2 * Math.PI / resolution;
     verticies.push(new Vector3(0, 1, 0));
     for (let j = 1; j < resolution; j++) {
@@ -396,7 +399,7 @@ function loadModel(_name) {
     })
 }
 
-function round(_f, _d){
+function round(_f, _d) {
     let a = Math.pow(10, _d);
     return Math.round(_f * a) / a;
 }
@@ -408,8 +411,7 @@ function setup() {
     ctx = canvas.getContext("2d");
 
     prism = createPrism(SETTINGS.verticies, SETTINGS.spike);
-    //prism = createSphere();
-    //loadModel('sphere.obj');
+    //loadModel('teapot.obj');
     camera = new Camera();
 
     requestAnimationFrame(frame);
@@ -436,9 +438,6 @@ function DOM_change_spike(_v) {
 
 function DOM_change_wireframe(_v) {
     SETTINGS.wireframe = _v;
-    let r = prism.rotation;
-    prism = createPrism(SETTINGS.verticies, SETTINGS.spike);
-    prism.rotation = r;
 }
 
 function DOM_change_rotation(_t, _v) {
@@ -455,12 +454,26 @@ function DOM_change_rotation(_t, _v) {
     }
 }
 
+function DOM_change_scale(_t, _v) {
+    switch (_t) {
+        case 'X':
+            SETTINGS.scale.x = parseFloat(_v);
+            break;
+        case 'Y':
+            SETTINGS.scale.y = parseFloat(_v);
+            break;
+        case 'Z':
+            SETTINGS.scale.z = parseFloat(_v);
+            break;
+    }
+}
+
 function DOM_download() {
     var text = "";
-    for(let i = 0; i < prism.verticies.length; i++)
+    for (let i = 0; i < prism.verticies.length; i++)
         text += "v " + round(prism.verticies[i].x, 6) + ' ' + round(prism.verticies[i].y, 6) + ' ' + round(prism.verticies[i].z, 6) + '\n';
-    for(let i = 0; i < prism.triangles.length; i++)
-        text += "f " + (prism.triangles[i][0]+1) + ' ' + (prism.triangles[i][1]+1) + ' ' + (prism.triangles[i][2]+1) + '\n';
+    for (let i = 0; i < prism.triangles.length; i++)
+        text += "f " + (prism.triangles[i][0] + 1) + ' ' + (prism.triangles[i][1] + 1) + ' ' + (prism.triangles[i][2] + 1) + '\n';
     //return;
     var element = document.createElement('a');
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
@@ -472,4 +485,29 @@ function DOM_download() {
     element.click();
 
     document.body.removeChild(element);
+}
+
+function DOM_reset_rotation(){
+    prism.rotation = new Vector3(0,0,0);
+}
+
+function DOM_change_resolution(_v){
+    SETTINGS.resolution = parseInt(_v);
+    prism = createSphere(SETTINGS.resolution);
+}
+
+function DOM_change_shape(_v){
+    if(_v == 'P'){
+        let oldM = document.getElementById('menuS');
+        oldM.classList.add('hidden');
+        let newM = document.getElementById('menuP');
+        newM.classList.remove('hidden');
+        prism = createPrism(SETTINGS.verticies, SETTINGS.spike);
+    }else if(_v == 'S'){
+        let oldM = document.getElementById('menuP');
+        oldM.classList.add('hidden');
+        let newM = document.getElementById('menuS');
+        newM.classList.remove('hidden');
+        prism = createSphere(SETTINGS.resolution);
+    }
 }
