@@ -1,7 +1,10 @@
 'use strict';
 //TODO
 //torus
-//scaling x, y, z
+//gears
+//export as 3mf
+//export as stl
+//display number of verticies, trianles and triangles displayed
 
 class Vector3 {
     constructor(_x, _y, _z) {
@@ -28,7 +31,7 @@ class Vector3 {
     mult(_a) {
         return new Vector3(this.x * _a, this.y * _a, this.z * _a);
     }
-    multV(_v){
+    multV(_v) {
         return new Vector3(this.x * _v.x, this.y * _v.y, this.z * _v.z);
     }
 }
@@ -166,9 +169,9 @@ const SETTINGS = {
     FOV: 50,
     verticies: 4,
     resolution: 10,
-    spike: false,
+    anti: false,
     rotation: new Vector3(0.0, 0.01, 0.0),
-    scale: new Vector3(1.0,1.0,1.0)
+    scale: new Vector3(1.0, 1.0, 1.0)
 };
 var eye = new Vector3(0.0, 0.0, -1 / Math.tan(radians(SETTINGS.FOV / 2)));
 var camera;
@@ -276,53 +279,37 @@ function getTrianglesFromPolygon(_v, _inv) {
     return triangles;
 }
 
-function createPrism(_n, _spike) {
-    var verticies = [];
+function createPrism(_n, _anti) {
+    var verticies = new Array(_n * 2);
     var triangles = [];
     var a0 = (Math.PI * 2) / _n;
     for (let i = 0; i < _n; i++) {
         let a = a0 * i;
-        verticies.push(new Vector3(Math.cos(a), Math.SQRT2 / 2, Math.sin(a)));
-    }
-    if (_spike) {
-        verticies.push(new Vector3(0, -Math.SQRT2 / 2 / 2, 0));
-    } else {
-        for (let i = 0; i < _n; i++) {
-            let a = a0 * i;
-            verticies.push(new Vector3(Math.cos(a), -Math.SQRT2 / 2, Math.sin(a)));
-        }
+        verticies[i] = new Vector3(Math.cos(a), Math.SQRT2 / 2, Math.sin(a));
+        if (_anti) a += Math.PI / _n;
+        verticies[i + _n] = new Vector3(Math.cos(a), -Math.SQRT2 / 2, Math.sin(a));
     }
 
-    if (SETTINGS.spike) {
-        for (let i = 0; i < _n; i++) {
-            //side 1
-            triangles.push([
-                        i,
-                        i + 1 >= _n ? 0 : i + 1,
-                        _n]);
-        }
-        var v1 = new Array(_n);
-        for (let i = 0; i < _n; i++) v1[i] = i;
-        triangles = triangles.concat(getTrianglesFromPolygon(v1, true));
-    } else {
-        for (let i = 0; i < _n; i++) {
-            //side 1
-            triangles.push([
+
+
+    for (let i = 0; i < _n; i++) {
+        //side 1
+        triangles.push([
                         i,
                         i + 1 >= _n ? 0 : i + 1,
                         i + _n]);
-            //side 2
-            triangles.push([
+        //side 2
+        triangles.push([
                     i + 1 >= _n ? _n : i + 1 + _n,
                     i + _n,
                     i + 1 >= _n ? 0 : i + 1]);
-        }
-        var v1 = new Array(_n);
-        for (let i = 0; i < _n; i++) v1[i] = i;
-        triangles = triangles.concat(getTrianglesFromPolygon(v1, true));
-        for (let i = 0; i < _n; i++) v1[i] = i + _n;
-        triangles = triangles.concat(getTrianglesFromPolygon(v1, false));
     }
+    var v1 = new Array(_n);
+    for (let i = 0; i < _n; i++) v1[i] = i;
+    triangles = triangles.concat(getTrianglesFromPolygon(v1, true));
+    for (let i = 0; i < _n; i++) v1[i] = i + _n;
+    triangles = triangles.concat(getTrianglesFromPolygon(v1, false));
+
 
     var p = new Prism(verticies, triangles);
     return p;
@@ -410,7 +397,7 @@ function setup() {
     canvas.height = canvas.getBoundingClientRect().height; //768
     ctx = canvas.getContext("2d");
 
-    prism = createPrism(SETTINGS.verticies, SETTINGS.spike);
+    prism = createPrism(SETTINGS.verticies, SETTINGS.anti);
     //loadModel('teapot.obj');
     camera = new Camera();
 
@@ -425,14 +412,14 @@ function DOM_change_fov(_v) {
 function DOM_change_verticies(_v) {
     SETTINGS.verticies = parseInt(_v);
     let r = prism.rotation;
-    prism = createPrism(SETTINGS.verticies, SETTINGS.spike);
+    prism = createPrism(SETTINGS.verticies, SETTINGS.anti);
     prism.rotation = r;
 }
 
-function DOM_change_spike(_v) {
-    SETTINGS.spike = _v;
+function DOM_change_anti(_v) {
+    SETTINGS.anti = _v;
     let r = prism.rotation;
-    prism = createPrism(SETTINGS.verticies, SETTINGS.spike);
+    prism = createPrism(SETTINGS.verticies, SETTINGS.anti);
     prism.rotation = r;
 }
 
@@ -487,23 +474,23 @@ function DOM_download() {
     document.body.removeChild(element);
 }
 
-function DOM_reset_rotation(){
-    prism.rotation = new Vector3(0,0,0);
+function DOM_reset_rotation() {
+    prism.rotation = new Vector3(0, 0, 0);
 }
 
-function DOM_change_resolution(_v){
+function DOM_change_resolution(_v) {
     SETTINGS.resolution = parseInt(_v);
     prism = createSphere(SETTINGS.resolution);
 }
 
-function DOM_change_shape(_v){
-    if(_v == 'P'){
+function DOM_change_shape(_v) {
+    if (_v == 'P') {
         let oldM = document.getElementById('menuS');
         oldM.classList.add('hidden');
         let newM = document.getElementById('menuP');
         newM.classList.remove('hidden');
-        prism = createPrism(SETTINGS.verticies, SETTINGS.spike);
-    }else if(_v == 'S'){
+        prism = createPrism(SETTINGS.verticies, SETTINGS.anti);
+    } else if (_v == 'S') {
         let oldM = document.getElementById('menuP');
         oldM.classList.add('hidden');
         let newM = document.getElementById('menuS');

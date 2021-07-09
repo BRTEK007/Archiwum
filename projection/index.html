@@ -23,8 +23,8 @@
             <label>verticies:</label>
             <input onchange="DOM_change_verticies(this.value)" id="inputV" type="range" min="3" max="10" value="4">
             <br>
-            <label>spike:</label>
-            <input onchange="DOM_change_spike(this.checked)" id="inputS" type="checkbox">
+            <label>antiprism:</label>
+            <input onchange="DOM_change_anti(this.checked)" id="inputS" type="checkbox">
         </div>
         <div id = "menuS" class = "hidden">
             <label>resolution:</label>
@@ -42,6 +42,7 @@
         <input onchange="DOM_change_scale('X', this.value)" id="inputSX" type="range" min="0" max="2" step="0.2" value="1">
         <input onchange="DOM_change_scale('Y', this.value)" id="inputSY" type="range" min="0" max="2" step="0.2" value="1">
         <input onchange="DOM_change_scale('Z', this.value)" id="inputSZ" type="range" min="0" max="2" step="0.2" value="1">
+        <label>verticies: <span>?</span> <br> triangles: <span>?</span><!-- <br> rendered: <span>10</span>--></label>
         <button onclick="DOM_download()">DOWNLOAD .obj</button>
     </div>
 </body></html>
