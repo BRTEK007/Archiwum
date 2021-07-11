@@ -63,14 +63,8 @@ function renderTriangle(_t) {
     for (let i = 0; i < 3; i++) {
         _t.points[i] = camera.transfomedPoint(_t.points[i]);
         points[i] = camera.projectPointToScreen(_t.points[i]);
-        if (_t.points[i].z < camera.pos.z) {
-            //_t.points[i].z = camera.pos.z + 0.1;
-            behindPoints.push(_t.points[i]);
-        }
     }
-    //console.log(behindPoints.length);
-    if (behindPoints.length == 3)
-        return;
+
 
     //_t.calculateNormal();
     //let dp = Math.abs(light.dot(_t.normal.unit()));
@@ -171,6 +165,7 @@ class Camera {
     }
 
     projectPointToScreen(_p) {
+
         var d = _p;
         var vx = -(eye.z * d.x) / d.z + eye.x;
         //vx = Math.max(Math.min(vx, 1), -1);

@@ -159,6 +159,22 @@ function multiplyVectorWithMatrix(_v, _m) {
     );
 }
 
+function MultiplyMatrixVector(i, m)
+{
+        var o = new Vector3(0,0,0);
+		o.x = i.x * m[0][0] + i.y * m[1][0] + i.z * m[2][0] + m[3][0];
+		o.y = i.x * m[0][1] + i.y * m[1][1] + i.z * m[2][1] + m[3][1];
+		o.z = i.x * m[0][2] + i.y * m[1][2] + i.z * m[2][2] + m[3][2];
+		let w = i.x * m[0][3] + i.y * m[1][3] + i.z * m[2][3] + m[3][3];
+
+		if (w != 0.0)
+		{
+			o.x /= w; o.y /= w; o.z /= w;
+		}
+        //console.log(o);
+        return o;
+}
+
 var canvas;
 var ctx;
 var prism;
@@ -197,6 +213,24 @@ class Camera {
     }
 
     projectPointToScreen(_p) {
+        /*var d = this.transfomedPoint(_p);
+
+        var fNear = 0.1;
+		var fFar = 1000.0;
+		var fFov = 90.0;
+		var fAspectRatio = canvas.width / canvas.height;
+		var fFovRad = 1.0 / Math.tan(fFov * 0.5 / 180 * Math.PI);
+
+        var matProj = [
+            [fAspectRatio * fFovRad, 0, 0, 0],
+            [0, fFovRad, 0, 0],
+            [0, 0, fFar / (fFar - fNear), 1],
+            [0,0,(-fFar * fNear) / (fFar - fNear), 0]
+        ]
+        var v = MultiplyMatrixVector(d, matProj);
+        var sx = canvas.width / 2 + v.x * canvas.width / 2;
+        var sy = canvas.height / 2 + v.y * canvas.width / 2;
+        return new Vector2(sx, sy);*/
         var d = this.transfomedPoint(_p);
         var vx = (eye.z * d.x) / d.z + eye.x;
         //vx = Math.max(Math.min(vx, 1), -1);
@@ -398,7 +432,7 @@ function setup() {
     ctx = canvas.getContext("2d");
 
     prism = createPrism(SETTINGS.verticies, SETTINGS.anti);
-    //loadModel('teapot.obj');
+    //loadModel('ak47.obj');
     camera = new Camera();
 
     requestAnimationFrame(frame);
