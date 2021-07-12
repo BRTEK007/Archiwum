@@ -68,10 +68,9 @@ class Triangle {
 
 function renderTriangle(_t) {
     var points = new Array(3);
-    var behindPoints = [];
     for (let i = 0; i < 3; i++) {
-        _t.points[i] = camera.transfomedPoint(_t.points[i]);
-        points[i] = camera.projectPointToScreen(_t.points[i]);
+        let tp = camera.transfomedPoint(_t.points[i]);
+        points[i] = camera.projectPointToScreen(tp);
     }
 
     _t.calculateNormal();
@@ -113,13 +112,20 @@ function rgb(_r, _g, _b) {
 
 function frame() {
     requestAnimationFrame(frame);
-    if (prism == null) return;
+    if (mesh == null) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    prism.update();
-    prism.render();
+    mesh.update();
+    mesh.render();
+    //console.log(camera.transfomedPoint(mesh.pos));
 }
 
 function Rx(_a) {
+    /*return [
+        [1, 0, 0, 0],
+        [0, Math.cos(_a), -Math.sin(_a), 0],
+        [0, Math.sin(_a), Math.cos(_a), 0], 
+        [0,0,0, 1]
+    ];*/
     return [
         [1, 0, 0],
         [0, Math.cos(_a), -Math.sin(_a)],
@@ -128,6 +134,12 @@ function Rx(_a) {
 }
 
 function Ry(_a) {
+    /*return [
+        [Math.cos(_a), 0, Math.sin(_a), 0],
+        [0, 1, 0, 0],
+        [-Math.sin(_a), 0, Math.cos(_a), 0],
+        [0,0,0, 1]
+    ];*/
     return [
         [Math.cos(_a), 0, Math.sin(_a)],
         [0, 1, 0],
@@ -136,6 +148,12 @@ function Ry(_a) {
 }
 
 function Rz(_a) {
+    /*return [
+        [Math.cos(_a), -Math.sin(_a), 0, 0],
+        [Math.sin(_a), Math.cos(_a), 0, 0],
+        [0, 0, 1, 0],
+        [0,0,0, 1]
+    ];*/
     return [
         [Math.cos(_a), -Math.sin(_a), 0],
         [Math.sin(_a), Math.cos(_a), 0],
@@ -159,25 +177,33 @@ function multiplyVectorWithMatrix(_v, _m) {
     );
 }
 
-function MultiplyMatrixVector(i, m)
+function MultiplyMatrixVector(_v, _m)
 {
-        var o = new Vector3(0,0,0);
-		o.x = i.x * m[0][0] + i.y * m[1][0] + i.z * m[2][0] + m[3][0];
-		o.y = i.x * m[0][1] + i.y * m[1][1] + i.z * m[2][1] + m[3][1];
-		o.z = i.x * m[0][2] + i.y * m[1][2] + i.z * m[2][2] + m[3][2];
-		let w = i.x * m[0][3] + i.y * m[1][3] + i.z * m[2][3] + m[3][3];
+		let x = _v.x * _m[0][0] + _v.y * _m[1][0] + _v.z * _m[2][0] + _m[3][0];
+		let y = _v.x * _m[0][1] + _v.y * _m[1][1] + _v.z * _m[2][1] + _m[3][1];
+		let z = _v.x * _m[0][2] + _v.y * _m[1][2] + _v.z * _m[2][2] + _m[3][2];
+		let w = _v.x * _m[0][3] + _v.y * _m[1][3] + _v.z * _m[2][3] + _m[3][3];
 
-		if (w != 0.0)
-		{
-			o.x /= w; o.y /= w; o.z /= w;
-		}
-        //console.log(o);
-        return o;
+        let out = new Vector3(x,y,z);
+
+		if (w != 0) out.mult(1/w);
+        return out;
+}
+
+function GetProjectionMatrix(_fNear, _fFar, _fFov, _fAspectRatio){
+    var fFovRad = 1 / Math.tan(radians(SETTINGS.FOV / 2));
+
+    return [
+        [_fAspectRatio * fFovRad, 0, 0, 0],
+        [0, fFovRad, 0, 0],
+        [0, 0, _fFar / (_fFar - _fNear), 1],
+        [0,0,(-_fFar * _fNear) / (_fFar - _fNear), 0]
+    ];
 }
 
 var canvas;
 var ctx;
-var prism;
+var mesh;
 
 const SETTINGS = {
     axis: true,
@@ -185,10 +211,12 @@ const SETTINGS = {
     FOV: 50,
     verticies: 4,
     resolution: 10,
+    teeth: 5,
     anti: false,
-    rotation: new Vector3(0.0, 0.01, 0.0),
+    rotation: new Vector3(0.01, 0.01, 0.0),
     scale: new Vector3(1.0, 1.0, 1.0)
 };
+
 var eye = new Vector3(0.0, 0.0, -1 / Math.tan(radians(SETTINGS.FOV / 2)));
 var camera;
 var light = new Vector3(0.0, 0.0, 1);
@@ -213,36 +241,21 @@ class Camera {
     }
 
     projectPointToScreen(_p) {
-        /*var d = this.transfomedPoint(_p);
-
-        var fNear = 0.1;
-		var fFar = 1000.0;
-		var fFov = 90.0;
-		var fAspectRatio = canvas.width / canvas.height;
-		var fFovRad = 1.0 / Math.tan(fFov * 0.5 / 180 * Math.PI);
-
-        var matProj = [
-            [fAspectRatio * fFovRad, 0, 0, 0],
-            [0, fFovRad, 0, 0],
-            [0, 0, fFar / (fFar - fNear), 1],
-            [0,0,(-fFar * fNear) / (fFar - fNear), 0]
-        ]
-        var v = MultiplyMatrixVector(d, matProj);
-        var sx = canvas.width / 2 + v.x * canvas.width / 2;
-        var sy = canvas.height / 2 + v.y * canvas.width / 2;
+        /*var matProj = GetProjectionMatrix(0.1, 1000, SETTINGS.FOV, canvas.height/canvas.width);
+        var v = MultiplyMatrixVector(_p, matProj);
+        v = v.add(new Vector3(1,1,1));
+        var sx = v.x * canvas.width / 2;
+        var sy = v.y * canvas.width / 2;
         return new Vector2(sx, sy);*/
-        var d = this.transfomedPoint(_p);
-        var vx = (eye.z * d.x) / d.z + eye.x;
-        //vx = Math.max(Math.min(vx, 1), -1);
+        var vx = (eye.z * _p.x) / _p.z + eye.x;
         var sx = canvas.width / 2 + vx * canvas.width / 2;
-        var vy = (eye.z * d.y) / d.z + eye.y;
-        //vy = Math.max(Math.min(vy, 1), -1);
+        var vy = (eye.z * _p.y) / _p.z + eye.y;
         var sy = canvas.height / 2 + vy * canvas.width / 2;
         return new Vector2(sx, sy);
     }
 }
 
-class Prism {
+class Mesh {
     constructor(_v, _t) {
         this.pos = new Vector3(0, 0, 8);
         this.rotation = new Vector3(0, 0, 0);
@@ -260,6 +273,9 @@ class Prism {
             var rv = multiplyVectorWithMatrix(this.verticies[i].multV(SETTINGS.scale), rx);
             rv = multiplyVectorWithMatrix(rv, ry);
             rv = multiplyVectorWithMatrix(rv, rz);
+            /*var rv = MultiplyMatrixVector(this.verticies[i].multV(SETTINGS.scale), rx);
+            rv = MultiplyMatrixVector(rv, ry);
+            rv = MultiplyMatrixVector(rv, rz);*/
             verticies2[i] = new Vector3(this.pos.x + rv.x, this.pos.y + rv.y, this.pos.z + rv.z);
         }
         var triangles_sorted = [];
@@ -345,7 +361,77 @@ function createPrism(_n, _anti) {
     triangles = triangles.concat(getTrianglesFromPolygon(v1, false));
 
 
-    var p = new Prism(verticies, triangles);
+    var p = new Mesh(verticies, triangles);
+    return p;
+}
+
+function createGear(_n){
+    var verts = [];
+    var a0 = (Math.PI * 2) / _n;
+    for (let i = 0; i < _n; i++) {
+        let a = a0 * i;
+        verts.push( new Vector3(Math.cos(a), Math.SQRT2 / 4, Math.sin(a)) );
+    }
+    for (let i = 0; i < _n; i++) {
+        let a = a0 * i;
+        verts.push( new Vector3(Math.cos(a)/2, Math.SQRT2 / 4, Math.sin(a)/2) );
+    }
+    for (let i = 0; i < _n; i++) {
+        let a = a0 * i;
+        verts.push( new Vector3(Math.cos(a), -Math.SQRT2 / 4, Math.sin(a)) );
+    }
+    for (let i = 0; i < _n; i++) {
+        let a = a0 * i;
+        verts.push( new Vector3(Math.cos(a)/2, -Math.SQRT2 / 4, Math.sin(a)/2) );
+    }
+    var tris = [];
+    for(let i = 0; i < _n; i++){
+        //TOP
+        tris.push([
+            i,
+            i+_n,
+            i+1 == _n ? 0 : i + 1  
+        ]);
+        tris.push([
+            i+_n,
+            i + 1 == _n ? _n : i + 1 + _n,
+            i+1 == _n ? 0 : i + 1  
+        ]);
+        //BOTTOM
+        tris.push([
+            i+3*_n,
+            i+2*_n,
+            i+1 == _n ? 2*_n : i + 1 + 2*_n 
+        ]);
+        tris.push([
+            i + 1 == _n ? 3*_n : i + 1 + 3*_n,
+            i+3*_n,
+            i+1 == _n ? 2*_n : i + 1 + 2*_n 
+        ]);
+        //SIDE IN
+        tris.push([
+            i+_n,
+            i+3*_n,
+            i+1 == _n ? 3*_n : i + 1 + 3*_n 
+        ]);
+        tris.push([
+            i+1 == _n ? _n : i + 1 + _n,
+            i+_n,
+            i+1 == _n ? 3*_n : i + 1 + 3*_n 
+        ]);
+        //SIDE OUT
+        tris.push([
+            i+2*_n,
+            i,
+            i+1 == _n ? 2*_n : i + 1 + 2*_n 
+        ]);
+        tris.push([
+            i,
+            i+1 == _n ? 0 : i + 1,
+            i+1 == _n ? 2*_n : i + 1 + 2*_n 
+        ]);
+    }
+    var p = new Mesh(verts, tris);
     return p;
 }
 
@@ -393,7 +479,7 @@ function createSphere(_r) {
         }
     }
     //console.log(triangles.length, verticies.length);
-    var p = new Prism(verticies, triangles);
+    var p = new Mesh(verticies, triangles);
     return p;
 }
 
@@ -416,7 +502,7 @@ function loadModel(_name) {
                 ]);
             }
         }
-        prism = new Prism(verticies, triangles);
+        mesh = new Mesh(verticies, triangles);
     })
 }
 
@@ -427,11 +513,12 @@ function round(_f, _d) {
 
 function setup() {
     canvas = document.getElementById('myCanvas');
-    canvas.width = canvas.getBoundingClientRect().width; //1563
-    canvas.height = canvas.getBoundingClientRect().height; //768
+    canvas.width = canvas.getBoundingClientRect().width; 
+    canvas.height = canvas.getBoundingClientRect().height; 
     ctx = canvas.getContext("2d");
 
-    prism = createPrism(SETTINGS.verticies, SETTINGS.anti);
+    mesh = createPrism(SETTINGS.verticies, SETTINGS.anti);
+    //mesh = createGear(SETTINGS.teeth*2);
     //loadModel('ak47.obj');
     camera = new Camera();
 
@@ -445,16 +532,23 @@ function DOM_change_fov(_v) {
 
 function DOM_change_verticies(_v) {
     SETTINGS.verticies = parseInt(_v);
-    let r = prism.rotation;
-    prism = createPrism(SETTINGS.verticies, SETTINGS.anti);
-    prism.rotation = r;
+    let r = mesh.rotation;
+    mesh = createPrism(SETTINGS.verticies, SETTINGS.anti);
+    mesh.rotation = r;
+}
+
+function DOM_change_teeth(_v){
+    SETTINGS.teeth = parseInt(_v);
+    let r = mesh.rotation;
+    mesh = createGear(SETTINGS.teeth*2);
+    mesh.rotation = r;
 }
 
 function DOM_change_anti(_v) {
     SETTINGS.anti = _v;
-    let r = prism.rotation;
-    prism = createPrism(SETTINGS.verticies, SETTINGS.anti);
-    prism.rotation = r;
+    let r = mesh.rotation;
+    mesh = createPrism(SETTINGS.verticies, SETTINGS.anti);
+    mesh.rotation = r;
 }
 
 function DOM_change_wireframe(_v) {
@@ -491,10 +585,10 @@ function DOM_change_scale(_t, _v) {
 
 function DOM_download() {
     var text = "";
-    for (let i = 0; i < prism.verticies.length; i++)
-        text += "v " + round(prism.verticies[i].x, 6) + ' ' + round(prism.verticies[i].y, 6) + ' ' + round(prism.verticies[i].z, 6) + '\n';
-    for (let i = 0; i < prism.triangles.length; i++)
-        text += "f " + (prism.triangles[i][0] + 1) + ' ' + (prism.triangles[i][1] + 1) + ' ' + (prism.triangles[i][2] + 1) + '\n';
+    for (let i = 0; i < mesh.verticies.length; i++)
+        text += "v " + round(mesh.verticies[i].x, 6) + ' ' + round(mesh.verticies[i].y, 6) + ' ' + round(mesh.verticies[i].z, 6) + '\n';
+    for (let i = 0; i < mesh.triangles.length; i++)
+        text += "f " + (mesh.triangles[i][0] + 1) + ' ' + (mesh.triangles[i][1] + 1) + ' ' + (mesh.triangles[i][2] + 1) + '\n';
     //return;
     var element = document.createElement('a');
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
@@ -509,26 +603,23 @@ function DOM_download() {
 }
 
 function DOM_reset_rotation() {
-    prism.rotation = new Vector3(0, 0, 0);
+    mesh.rotation = new Vector3(0, 0, 0);
 }
 
 function DOM_change_resolution(_v) {
     SETTINGS.resolution = parseInt(_v);
-    prism = createSphere(SETTINGS.resolution);
+    mesh = createSphere(SETTINGS.resolution);
 }
 
 function DOM_change_shape(_v) {
-    if (_v == 'P') {
-        let oldM = document.getElementById('menuS');
-        oldM.classList.add('hidden');
-        let newM = document.getElementById('menuP');
-        newM.classList.remove('hidden');
-        prism = createPrism(SETTINGS.verticies, SETTINGS.anti);
-    } else if (_v == 'S') {
-        let oldM = document.getElementById('menuP');
-        oldM.classList.add('hidden');
-        let newM = document.getElementById('menuS');
-        newM.classList.remove('hidden');
-        prism = createSphere(SETTINGS.resolution);
+    let menus = document.getElementById('menus').children;
+    for(let i = 0; i < menus.length; i++)
+        menus[i].hidden = true;
+    document.getElementById('menu' + _v).hidden = false;
+    
+    switch(_v){
+        case 'P': mesh = createPrism(SETTINGS.verticies, SETTINGS.anti); break;
+        case 'S': mesh = createSphere(SETTINGS.resolution); break;
+        case 'G': mesh = createGear(SETTINGS.teeth*2); break;
     }
 }
