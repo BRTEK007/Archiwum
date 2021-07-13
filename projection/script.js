@@ -370,19 +370,27 @@ function createGear(_n){
     var a0 = (Math.PI * 2) / _n;
     for (let i = 0; i < _n; i++) {
         let a = a0 * i;
+        verts.push( new Vector3(Math.cos(a)*0.68, Math.SQRT2 / 4, Math.sin(a)*0.68) );
+    }
+    for (let i = 0; i < _n; i++) {
+        let a = a0 * i;
+        verts.push( new Vector3(Math.cos(a)*0.34, Math.SQRT2 / 4, Math.sin(a)*0.34) );
+    }
+    for (let i = 0; i < _n; i++) {
+        let a = a0 * i;
+        verts.push( new Vector3(Math.cos(a)*0.68, -Math.SQRT2 / 4, Math.sin(a)*0.68) );
+    }
+    for (let i = 0; i < _n; i++) {
+        let a = a0 * i;
+        verts.push( new Vector3(Math.cos(a)*0.34, -Math.SQRT2 / 4, Math.sin(a)*0.34) );
+    }
+    for (let i = 0; i < _n; i++) {
+        let a = a0 * i;
         verts.push( new Vector3(Math.cos(a), Math.SQRT2 / 4, Math.sin(a)) );
     }
     for (let i = 0; i < _n; i++) {
         let a = a0 * i;
-        verts.push( new Vector3(Math.cos(a)/2, Math.SQRT2 / 4, Math.sin(a)/2) );
-    }
-    for (let i = 0; i < _n; i++) {
-        let a = a0 * i;
         verts.push( new Vector3(Math.cos(a), -Math.SQRT2 / 4, Math.sin(a)) );
-    }
-    for (let i = 0; i < _n; i++) {
-        let a = a0 * i;
-        verts.push( new Vector3(Math.cos(a)/2, -Math.SQRT2 / 4, Math.sin(a)/2) );
     }
     var tris = [];
     for(let i = 0; i < _n; i++){
@@ -420,6 +428,7 @@ function createGear(_n){
             i+1 == _n ? 3*_n : i + 1 + 3*_n 
         ]);
         //SIDE OUT
+        if(i % 2){
         tris.push([
             i+2*_n,
             i,
@@ -430,6 +439,63 @@ function createGear(_n){
             i+1 == _n ? 0 : i + 1,
             i+1 == _n ? 2*_n : i + 1 + 2*_n 
         ]);
+        }else{//TEETH
+            //TOP
+            tris.push([
+                i+4*_n,
+                i,
+                i+1 == _n ? 0 : i + 1 
+            ]);
+            tris.push([
+                i + 1 + 4 * _n,
+                i+4*_n,
+                i + 1 
+            ]);
+            //BOTTOM
+            tris.push([
+                i+2*_n,
+                i+5*_n,
+                i + 1 + 2*_n
+            ]);
+            tris.push([
+                i+5*_n,
+                i + 1 + 5 * _n,
+                i + 1 + 2 * _n 
+            ]);
+            //SIDE 1
+            tris.push([
+                i+2*_n,
+                i,
+                i+5*_n,
+            ]);
+            tris.push([
+                i,
+                i+4*_n,
+                i+5*_n,
+            ]);
+            //SIDE 2
+            tris.push([
+                i+1,
+                i+1+2*_n,
+                i+1+5*_n,
+            ]);
+            tris.push([
+                i+1+4*_n,
+                i+1 == _n ? 0: i+1,
+                i+1+5*_n,
+            ]);
+            //FRONT
+            tris.push([
+                i+4*_n,
+                i+1+4*_n,
+                i+5*_n,
+            ]);
+            tris.push([
+                i+5*_n,
+                i+1+4*_n,
+                i+1+5*_n,
+            ]);
+        }
     }
     var p = new Mesh(verts, tris);
     return p;
