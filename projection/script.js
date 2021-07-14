@@ -298,7 +298,7 @@ class Mesh {
         }
 
         triangles_sorted.sort(zSort);
-
+        console.log(triangles_sorted.length);
         for (let i = 0; i < triangles_sorted.length; i++)
             renderTriangle(triangles_sorted[i]);
     }
